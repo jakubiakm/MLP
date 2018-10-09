@@ -1,4 +1,5 @@
 import tensorflow as tf
+import data as d
 from config import cfg
 
 def main(_):
@@ -9,6 +10,11 @@ def main(_):
     print(f'Learning type = {cfg.learning_type}')
     print(f'Number of iterations = {cfg.iterations}')
     print(f'Problem type = {cfg.problem_type}')
-    
+    print(f'Learning file path = {cfg.training_path}')
+    print(f'Training file path = {cfg.test_path}')
+
+    training_data = d.get_data(cfg.training_path, cfg.problem_type)
+    test_data = d.get_data(cfg.test_path, cfg.problem_type)
+
 if __name__ == "__main__":
     tf.app.run()
