@@ -46,13 +46,13 @@ def get_data(path, problem_type):
             if(len(entry) != 2):
                 raise ValueError('Wrong data in {0} for {1} problem'.format(path, problem_type))
             data_list.append(RegressionData(entry[0], entry[1]))
-            return data_list
+        return data_list
     if(problem_type == 'classification'):
         for entry in csv_list:      
             if(len(entry) != 3):
                 raise ValueError('Wrong data in {0} for {1} problem'.format(path, problem_type))
             data_list.append(ClassificationData(entry[0], entry[1], entry[2]))
-            return data_list
+        return data_list
     raise ValueError('Wrong problem type: {0}. Possible values are: [classification, regression]'.format(problem_type))
 
 def load_csv(start_index, path):

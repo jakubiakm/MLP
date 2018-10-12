@@ -1,0 +1,22 @@
+Dla sieci MLP nale¿y zdefiniowaæ:
+? Liczbê warstw i neuronów ukrytych w ka¿dej warstwie (pe³ne
+po³¹czenia pomiêdzy warstwami)
+! Funkcjê aktywacji
+? Obecnoœæ biasu
+? Online vs batch learning (mo¿liwoœæ wyboru)
+? Liczbê iteracji
+? Wartoœæ wspó³czynnika nauki
+? Wartoœæ wspó³czynnika bezw³adnoœci
+? Rodzaj problemu: klasyfikacja lub regresja
+
+? Wymagania dotycz¹ce aplikacji i oddania projektu:
+? Aplikacja przetwarza zbiory zgodnie z podanym opisem
+? Prezentuje w formie wykresu b³¹d sieci na zbiorze ucz¹cym i
+testowym
+? Mo¿liwoœæ przeœledzenia procesu uczenia iteracja po iteracji
+(wizualizacja wag krawêdzi i propagacji b³êdu na krawêdziach sieci)
+? Wizualizacja zbioru ucz¹cego oraz rezultatów klasyfikacji/regresji
+? Student powinien umieæ wyjaœniæ przyczynê sukcesu lub pora¿ki
+danego modelu przy zadanych przez prowadz¹cego parametrach
+sieci i zadania (mo¿liwoœæ sprawnej zmiany parametrów sieci oraz
+zbiorów treningowych i testowych)

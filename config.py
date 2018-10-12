@@ -6,17 +6,18 @@ flags = tf.app.flags
 #####################
 #command prompt flags
 #####################
-flags.DEFINE_integer('number_of_layers', 2, 'Number of layers')
-flags.DEFINE_integer('number_of_neurons', 50, 'Number of neurons in layers')
-flags.DEFINE_integer('iterations', 100, 'Number of iterations')
+flags.DEFINE_integer('training_epochs', 100, 'Number of epochs')
+flags.DEFINE_integer('batch_size', 20, 'Batch size')
 
 flags.DEFINE_boolean('use_biases', True, 'Use biases')
 
+flags.DEFINE_string('neurons_in_layers', '[2, 2, 3]', 'Number of neurons in layers (array input like ''[1, 2, 3]''')
 flags.DEFINE_string('activation_function', '1=1', 'Activation function')
-flags.DEFINE_string('learning_type', 'online', 'Learning type: [online, batch]')
+flags.DEFINE_string('learning_type', 'batch', 'Learning type: [online, batch]')
 flags.DEFINE_string('problem_type', 'classification', 'Problem type: [classification, regression]')
-flags.DEFINE_string('training_path', r'.\data\classification\data.simple.train.100.csv', 'Training file path')
-flags.DEFINE_string('test_path', r'.\data\classification\data.simple.test.100.csv', 'Test file path')
+flags.DEFINE_string('training_path', r'.\data\classification\data.simple.train.10000.csv', 'Training file path')
+flags.DEFINE_string('test_path', r'.\data\classification\data.simple.test.10000.csv', 'Test file path')
 
+flags.DEFINE_float('learning_rate', 0.001, 'Learning rate')
 
 cfg = tf.app.flags.FLAGS
