@@ -9,6 +9,7 @@ def batch(iterable, n = 1):
     for ndx in range(0, l, n):
         yield iterable[ndx:min(ndx + n, l)]
 
+
 # tworzy wielowarstwoych perceptron neuronowy
 def construct_multilayer_perceptron_model(input_tensor, n_input, n_classes):
     layers_neurons = eval(cfg.neurons_in_layers)
@@ -39,12 +40,15 @@ def construct_multilayer_perceptron_model(input_tensor, n_input, n_classes):
     
     return tf.matmul(previous_layer, weights['out']) + biases['out']
 
+
 # przekształca wektor wyjściowy dla problemu klasyfikacji (pobrany z excela z klas)
 # na wektor wyjściowy odpowiedniego rozmiaru dla tensorflow 
 def convert_classification_labels_vector_to_tensorflow_output(labels_vector):
+    number_of_classes = len(set(labels_vector))
     labels_vector = np.asarray(labels_vector, np.int) - 1
-    labels_vector = labels_vector.reshape(labels_vector.shape[0], 1)
-    return np.concatenate((1 - labels_vector, labels_vector), axis=1)
+    labels_vector = tf.one_hot(labels_vector, number_of_classes).eval()
+    return labels_vector        
+
 
 # testuje model i wyświetla wyniki na wyjściu
 def test(model, test_data, X, Y):
@@ -54,15 +58,16 @@ def test(model, test_data, X, Y):
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
     features = [[item.x, item.y] for item in test_data]
     labels = convert_classification_labels_vector_to_tensorflow_output(
-        labels_vector=[item.cls for item in test_data])
+        [item.cls for item in test_data])
     print("Accuracy:", accuracy.eval({X: features, Y: labels}))
+
 
 # uczy model i wyświetla wyniki skuteczności
 def learn(training_data, test_data):   
     learning_rate = cfg.learning_rate
     training_epochs = cfg.training_epochs
     batch_size = cfg.batch_size
-    display_step = 1
+    display_step = 10
 
     # wielkość wektora cech
     n_input = len(vars(training_data[0])) - 1
@@ -88,21 +93,26 @@ def learn(training_data, test_data):
     # inicjalizacja zmiennych
     init = tf.global_variables_initializer()
 
+ 
     # uczenie
     with tf.Session() as sess:
-        sess.run(init)
+        sess.run([init])
+        
+        x_iterable = [[item.x, item.y] for item in training_data]
+        y_iterable = convert_classification_labels_vector_to_tensorflow_output(
+            [item.cls for item in training_data])
 
         for epoch in range(training_epochs):      
-            batch_x_generator = batch([[item.x, item.y] for item in training_data], batch_size)
-            batch_y_generator = batch([item.cls for item in training_data], batch_size)
+            batch_x_generator = batch(x_iterable, batch_size)
+            batch_y_generator = batch(y_iterable, batch_size)
             avg_cost = 0.
             total_batch = int(math.ceil(len(training_data) / batch_size))
             
             for _ in range(total_batch):
                 batch_x, batch_y = next(batch_x_generator), next(batch_y_generator)
                 batch_x = np.asarray(batch_x, np.float32)
-                batch_y = convert_classification_labels_vector_to_tensorflow_output(batch_y)
-
+                batch_y = np.asarray(batch_y, np.float32)
+                
                 # Run optimization op (backprop) and cost op (to get loss value)
                 _, c = sess.run([train_op, loss_op], feed_dict={X: batch_x,
                                                                 Y: batch_y})
@@ -110,8 +120,7 @@ def learn(training_data, test_data):
                 avg_cost += c / total_batch
 
             if epoch % display_step == 0:
-                print("Epoch:", '%04d' % (epoch+1), "cost={:.9f}".format(avg_cost))
-                # testowanie aktualnego modelu
+                print("Epoch:", '%04d' % (epoch + 1), "cost={:.9f}".format(avg_cost))
                 test(model, test_data, X, Y)
 
         print("Optimization Finished!")
