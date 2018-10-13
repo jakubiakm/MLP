@@ -46,6 +46,9 @@ def all_iteration_main():
     training_data = data.get_data(cfg.training_path, cfg.problem_type)
     test_data = data.get_data(cfg.test_path, cfg.problem_type)
     mlp.learn_all_epochs(training_data, test_data)
+
+def destroy():
+    mlp.destroy()
     
 if __name__ == "__main__":
     if(cfg.use_gpu == False):

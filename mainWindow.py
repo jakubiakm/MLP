@@ -52,8 +52,9 @@ class MainWindow:
 
     def all_iteration_action(self):
         print("All itearations")
-        self.calculation_thread = Thread(target = self._all_iterations_action)
-        self.calculation_thread.start()
+        self._all_iterations_action()
+        #self.calculation_thread = Thread(target = self._all_iterations_action)
+        #self.calculation_thread.start()
 
     def all_iteration_normal_action(self):
         main.main(self)
@@ -66,6 +67,7 @@ class MainWindow:
 
     def quit(self):
         #TODO thread stop
+        main.destroy()
         self.master.quit()
 
     def greet(self):
