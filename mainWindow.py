@@ -1,0 +1,101 @@
+from tkinter import Tk, Label, Button, StringVar, Frame
+from tkinter import LEFT, RIGHT, TOP, BOTTOM
+from tkinter import W
+
+from threading import Thread
+
+import mlp  as mlp
+import main as main
+
+class MainWindow:
+    LABEL_TEXT = [
+        "This is our first GUI!",
+        "Actually, this is our second GUI.",
+        "We made it more interesting...",
+        "...by making this label interactive.",
+        "Go on, click on it again.",
+    ]
+    def __init__(self, master):
+        self.master = master
+        master.title("Neural Network")
+
+        self.create_iteration_panel(master)
+
+        self.create_visualization_panel(master)
+
+
+
+        self.label_index = 0
+        self.label_text = StringVar()
+        self.label_text.set(self.LABEL_TEXT[self.label_index])
+        self.label = Label(master, textvariable=self.label_text)
+        self.label.bind("<Button-1>", self.cycle_label_text)
+        self.label.pack()
+
+        self.greet_button = Button(master, text="Greet", command=self.greet)
+        self.greet_button.pack()
+
+        self.close_button = Button(master, text="Close", command=self.quit)
+        self.close_button.pack()
+
+#-------PANELS----------------------
+
+    def create_iteration_panel(self, master):
+        self.iterating_frame = Frame(master)
+        self.iterating_frame.pack(side = TOP)
+
+        self.label_iterations = Label(self.iterating_frame, text = "Wykonaj iteracje")
+        self.label_iterations.pack(side = TOP)
+        self.button_one_iteration = Button(self.iterating_frame, text = ">", command=self.one_iteration_action )
+        self.button_one_iteration.pack(side = LEFT)
+        self.button_all_iteration = Button(self.iterating_frame, text = ">>>", command=self.all_iteration_action )
+        self.button_all_iteration.pack(side = LEFT)
+
+    def create_visualization_panel(self, master):
+        self.visualization_frame = Frame(master)
+        self.visualization_frame.pack(side = TOP)
+
+        self.label_visualization = Label(self.visualization_frame, text = "Wizualizacja")
+        self.label_visualization.pack(side = TOP)
+        self.button_one_iteration = Button(self.visualization_frame, text = "Pokaż sieć", command=self.visualize_network_action )
+        self.button_one_iteration.pack(side = TOP)
+        self.button_all_iteration = Button(self.visualization_frame, text = "Pokaż punkty", command=self.visualize_points_action )
+        self.button_all_iteration.pack(side = TOP)
+
+#-------ACTIONS-------------------------
+    def one_iteration_action(self):
+        print("One itearation")
+
+    def all_iteration_action(self):
+        print("All itearations")
+        self.calculation_thread = Thread(target = self._all_iterations_action)
+        self.calculation_thread.start()
+
+    def visualize_network_action(self):
+        print("visualize network")
+
+    def visualize_points_action(self):
+        print("visualize points")
+
+    def quit(self):
+        #TODO thread stop
+        self.master.quit()
+
+    def greet(self):
+        print("Greetings!")
+
+    def cycle_label_text(self, event):
+        self.label_index += 1
+        self.label_index %= len(self.LABEL_TEXT) # wrap around
+        self.label_text.set(self.LABEL_TEXT[self.label_index])
+
+#-------PRIVATE METHODS--------------------------
+
+    def _all_iterations_action(self):
+        main.main(self)
+
+
+
+root = Tk()
+my_gui = MainWindow(root)
+root.mainloop()

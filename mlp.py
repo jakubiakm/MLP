@@ -126,3 +126,98 @@ def learn(training_data, test_data):
 
         print("Optimization Finished!")
         test(model, test_data, X)
+
+def initialize_variables():
+    print("initializing variables")
+
+
+
+def train_one_iteration(sess, model, x_iterable, y_iterable, batch_size, training_data, train_op, loss_op, X, Y, epoch, display_step, test_data):
+            batch_x_generator = batch(x_iterable, batch_size)
+            batch_y_generator = batch(y_iterable, batch_size)
+            avg_cost = 0.
+            total_batch = int(math.ceil(len(training_data) / batch_size))
+            
+            for _ in range(total_batch):
+                batch_x, batch_y = next(batch_x_generator), next(batch_y_generator)
+                batch_x = np.asarray(batch_x, np.float32)
+                batch_y = np.asarray(batch_y, np.float32)
+                
+                # Run optimization op (backprop) and cost op (to get loss value)
+                _, c = sess.run([train_op, loss_op], feed_dict={X: batch_x,
+                                                                Y: batch_y})
+                # obliczenie średniej straty
+                avg_cost += c / total_batch
+
+            if epoch % display_step == 0:
+                print("Epoch:", '%04d' % (epoch + 1), "cost={:.9f}".format(avg_cost))
+                test(model, test_data, X, Y)
+
+class CountingVariables:
+    
+    def __init__(self, **kwargs):
+        self.learning_rate = None
+        self.training_epochs = None
+        self.batch_size = None
+        self.display_step = None
+
+        # wielkość wektora cech
+        self.n_input = None
+    
+    # ilość możliwych klas do klasyfikacji
+        self.n_classes = None
+
+    # wektory krańcowe
+        self.X = None
+        self.Y = None
+
+    # buduje model
+        self.model = None
+
+    # zdefiniowanie funkcji straty i optymalizatora
+        self.loss_op = None
+    
+        self.optimizer = None
+    
+        self.train_op = None
+    
+    # inicjalizacja zmiennych
+        self.init = None
+
+        self.training_data = None
+
+        self.test_data = None
+
+    def Initialize(self, training_data, test_data):
+        if self.training_data == None:
+            return
+        self.training_data = training_data
+        self.test_data = test_data
+        self.learning_rate = cfg.learning_rate
+        self.training_epochs = cfg.training_epochs
+        self.batch_size = cfg.batch_size
+        self.display_step = 10
+
+        # wielkość wektora cech
+        self.n_input = len(vars(self.training_data[0])) - 1
+    
+        # ilość możliwych klas do klasyfikacji
+        self.n_classes = len(set([item.cls for item in self.training_data])) if cfg.problem_type == 'classification' else 1
+
+        # wektory krańcowe
+        self.X = tf.placeholder("float", [None, self.n_input])
+        self.Y = tf.placeholder("float", [None, self.n_classes])
+
+        # buduje model
+        self.model = construct_multilayer_perceptron_model(self.X, self.n_input, self.n_classes)
+
+        # zdefiniowanie funkcji straty i optymalizatora
+        self.loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
+            logits=self.model, labels=self.Y))
+    
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
+    
+        self.train_op = self.optimizer.minimize(self.loss_op)
+    
+        # inicjalizacja zmiennych
+        self.init = tf.global_variables_initializer()
