@@ -2,8 +2,8 @@
 - [x] Liczbę warstw i neuronów ukrytych w każdej warstwie (pełne połączenia pomiędzy warstwami)
 - [ ] Funkcję aktywacji
 - [ ] Obecność biasu
-- [ ] Online vs batch learning (możliwość wyboru)
-- [ ] Liczbę iteracji
+- [x] Online vs batch learning (możliwość wyboru)
+- [x] Liczbę iteracji
 - [x] Wartość współczynnika nauki
 - [ ] Wartość współczynnika bezwładności
 - [ ] Rodzaj problemu

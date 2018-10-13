@@ -3,7 +3,13 @@ import data as data
 import mlp as mlp
 from config import cfg
 import os
-def main(_):
+
+def validate_arguments():
+    if((cfg.learning_type == 'batch' or cfg.learning_type == 'online') == False):
+        raise ValueError('Wrong learning_type value. Possible values are: [''batch'', ''online'']')
+
+
+def print_arguments():
     print(f'Neurons in layers = {cfg.neurons_in_layers}')
     print(f'Activation function = {cfg.activation_function}')
     print(f'Use biases = {cfg.use_biases}')
@@ -15,6 +21,11 @@ def main(_):
     print(f'Training file path = {cfg.test_path}')
     print(f'Use gpu = {cfg.use_gpu}')
     print(f'Display step = {cfg.display_step}')
+
+
+def main(_):
+    validate_arguments()
+    print_arguments()
 
     training_data = data.get_data(cfg.training_path, cfg.problem_type)
     test_data = data.get_data(cfg.test_path, cfg.problem_type)

@@ -68,7 +68,7 @@ def test(model, test_data, X):
 def learn(training_data, test_data):   
     learning_rate = cfg.learning_rate
     training_epochs = cfg.training_epochs
-    batch_size = cfg.batch_size
+    batch_size = cfg.batch_size if cfg.learning_type == 'batch' else 1
     display_step = cfg.display_step
 
     # wielkość wektora cech
