@@ -51,15 +51,17 @@ def convert_classification_labels_vector_to_tensorflow_output(labels_vector):
 
 
 # testuje model i wyświetla wyniki na wyjściu
-def test(model, test_data, X, Y):
-    pred = tf.nn.softmax(model)  # zastosowanie softmax do model
-    correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(Y, 1))
-    # obliczenie skuteczności
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-    features = [[item.x, item.y] for item in test_data]
-    labels = convert_classification_labels_vector_to_tensorflow_output(
-        [item.cls for item in test_data])
-    print("Accuracy:", accuracy.eval({X: features, Y: labels}))
+def test(model, test_data, X):
+    length = len(test_data)
+    test_features = [[item.x, item.y] for item in test_data]
+    predictions_labels = tf.argmax(model, 1).eval(feed_dict={X: test_features})
+    labels_vector = np.asarray([item.cls for item in test_data], np.int) - 1
+    points = 0
+    for ind in range(length):
+        if predictions_labels[ind] == labels_vector[ind]:
+            points = points + 1
+    accuracy = points / length
+    print("Accuracy:", accuracy)
 
 
 # uczy model i wyświetla wyniki skuteczności
@@ -67,7 +69,7 @@ def learn(training_data, test_data):
     learning_rate = cfg.learning_rate
     training_epochs = cfg.training_epochs
     batch_size = cfg.batch_size
-    display_step = 10
+    display_step = cfg.display_step
 
     # wielkość wektora cech
     n_input = len(vars(training_data[0])) - 1
@@ -92,7 +94,6 @@ def learn(training_data, test_data):
     
     # inicjalizacja zmiennych
     init = tf.global_variables_initializer()
-
  
     # uczenie
     with tf.Session() as sess:
@@ -121,7 +122,7 @@ def learn(training_data, test_data):
 
             if epoch % display_step == 0:
                 print("Epoch:", '%04d' % (epoch + 1), "cost={:.9f}".format(avg_cost))
-                test(model, test_data, X, Y)
+                test(model, test_data, X)
 
         print("Optimization Finished!")
-        test(model, test_data, X, Y)
+        test(model, test_data, X)

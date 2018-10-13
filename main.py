@@ -14,6 +14,7 @@ def main(_):
     print(f'Learning file path = {cfg.training_path}')
     print(f'Training file path = {cfg.test_path}')
     print(f'Use gpu = {cfg.use_gpu}')
+    print(f'Display step = {cfg.display_step}')
 
     training_data = data.get_data(cfg.training_path, cfg.problem_type)
     test_data = data.get_data(cfg.test_path, cfg.problem_type)

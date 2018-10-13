@@ -8,6 +8,7 @@ flags = tf.app.flags
 #####################
 flags.DEFINE_integer('training_epochs', 500, 'Number of epochs')
 flags.DEFINE_integer('batch_size', 200, 'Batch size')
+flags.DEFINE_integer('display_step', 5, 'Display step')
 
 flags.DEFINE_boolean('use_biases', True, 'Use biases')
 flags.DEFINE_boolean('use_gpu', True, 'Use gpu')
