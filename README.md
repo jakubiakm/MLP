@@ -1,6 +1,6 @@
 ### Dla sieci MLP należy zdefiniować:
 - [x] Liczbę warstw i neuronów ukrytych w każdej warstwie (pełne połączenia pomiędzy warstwami)
-- [ ] Funkcję aktywacji
+- [x] Funkcję aktywacji
 - [x] Obecność biasu
 - [x] Online vs batch learning (możliwość wyboru)
 - [x] Liczbę iteracji
