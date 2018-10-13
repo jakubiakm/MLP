@@ -98,6 +98,19 @@ def batch(iterable, n = 1):
     for ndx in range(0, l, n):
         yield iterable[ndx:min(ndx + n, l)]
 
+def activation_function(x, feature):
+    return {
+        'relu': tf.nn.relu(feature),
+        'relu6': tf.nn.relu6(feature),
+        'crelu': tf.nn.crelu(feature),
+        'elu': tf.nn.elu(feature),
+        'selu': tf.nn.selu(feature),
+        'softplus': tf.nn.softplus(feature),
+        'softsign': tf.nn.softsign(feature),
+        'dropout': tf.nn.dropout(feature, 1),
+        'sigmoid': tf.nn.sigmoid(feature),
+        'tanh': tf.nn.tanh(feature)
+    }.get(x) 
 
 # tworzy wielowarstwoych perceptron neuronowy
 def construct_multilayer_perceptron_model(input_tensor, n_input, n_classes):
@@ -113,7 +126,7 @@ def construct_multilayer_perceptron_model(input_tensor, n_input, n_classes):
         weights['w' + str(ind)] = tf.Variable(tf.random_normal([previous_layer_neurons_count, neurons]))
         biases['b' + str(ind)] = tf.Variable(tf.random_normal([neurons]))
         previous_layer_neurons_count = neurons 
-        ind = ind + 1
+        ind += 1
     
     weights['out'] = tf.Variable(tf.random_normal([previous_layer_neurons_count, n_classes]))
     biases['out'] = tf.Variable(tf.random_normal([n_classes]))
@@ -125,7 +138,7 @@ def construct_multilayer_perceptron_model(input_tensor, n_input, n_classes):
             previous_layer = tf.matmul(previous_layer, weights['w' + str(ind)])
         else:
             previous_layer = tf.add(tf.matmul(previous_layer, weights['w' + str(ind)]), biases['b' + str(ind)])   
-        previous_layer = tf.nn.relu(previous_layer)
+        previous_layer = activation_function(cfg.activation_function, previous_layer)
 
     if(cfg.use_biases == False):
         return tf.matmul(previous_layer, weights['out'])

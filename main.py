@@ -7,6 +7,9 @@ import os
 def validate_arguments():
     if((cfg.learning_type == 'batch' or cfg.learning_type == 'online') == False):
         raise ValueError('Wrong learning_type value. Possible values are: [''batch'', ''online'']')
+    activation_functions = ['relu', 'relu6', 'elu', 'selu', 'softplus', 'softsign', 'dropout', 'sigmoid', 'tanh']
+    if (cfg.activation_function in activation_functions) == False:
+        raise ValueError('Wrong learning_type value. Possible values are: [''relu'', ''relu6'', ''elu'', ''selu'', ''softplus'', ''softsign'', ''dropout'', ''sigmoid'', ''tanh'']')
 
 
 def print_arguments():
