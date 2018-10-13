@@ -30,6 +30,22 @@ def main(_):
     training_data = data.get_data(cfg.training_path, cfg.problem_type)
     test_data = data.get_data(cfg.test_path, cfg.problem_type)
     mlp.learn(training_data, test_data)
+
+def one_iteration_main():
+    validate_arguments()
+    print_arguments()
+
+    training_data = data.get_data(cfg.training_path, cfg.problem_type)
+    test_data = data.get_data(cfg.test_path, cfg.problem_type)
+    mlp.learn_one_epoch(training_data, test_data)
+
+def all_iteration_main():
+    validate_arguments()
+    print_arguments()
+
+    training_data = data.get_data(cfg.training_path, cfg.problem_type)
+    test_data = data.get_data(cfg.test_path, cfg.problem_type)
+    mlp.learn_all_epochs(training_data, test_data)
     
 if __name__ == "__main__":
     if(cfg.use_gpu == False):

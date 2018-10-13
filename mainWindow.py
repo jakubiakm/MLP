@@ -8,13 +8,6 @@ import mlp  as mlp
 import main as main
 
 class MainWindow:
-    LABEL_TEXT = [
-        "This is our first GUI!",
-        "Actually, this is our second GUI.",
-        "We made it more interesting...",
-        "...by making this label interactive.",
-        "Go on, click on it again.",
-    ]
     def __init__(self, master):
         self.master = master
         master.title("Neural Network")
@@ -23,20 +16,8 @@ class MainWindow:
 
         self.create_visualization_panel(master)
 
-
-
-        self.label_index = 0
-        self.label_text = StringVar()
-        self.label_text.set(self.LABEL_TEXT[self.label_index])
-        self.label = Label(master, textvariable=self.label_text)
-        self.label.bind("<Button-1>", self.cycle_label_text)
-        self.label.pack()
-
-        self.greet_button = Button(master, text="Greet", command=self.greet)
-        self.greet_button.pack()
-
         self.close_button = Button(master, text="Close", command=self.quit)
-        self.close_button.pack()
+        self.close_button.pack(side = BOTTOM)
 
 #-------PANELS----------------------
 
@@ -49,6 +30,8 @@ class MainWindow:
         self.button_one_iteration = Button(self.iterating_frame, text = ">", command=self.one_iteration_action )
         self.button_one_iteration.pack(side = LEFT)
         self.button_all_iteration = Button(self.iterating_frame, text = ">>>", command=self.all_iteration_action )
+        self.button_all_iteration.pack(side = LEFT)
+        self.button_all_iteration = Button(self.iterating_frame, text = ">ORIG>", command=self.all_iteration_normal_action )
         self.button_all_iteration.pack(side = LEFT)
 
     def create_visualization_panel(self, master):
@@ -65,11 +48,15 @@ class MainWindow:
 #-------ACTIONS-------------------------
     def one_iteration_action(self):
         print("One itearation")
+        main.one_iteration_main()
 
     def all_iteration_action(self):
         print("All itearations")
         self.calculation_thread = Thread(target = self._all_iterations_action)
         self.calculation_thread.start()
+
+    def all_iteration_normal_action(self):
+        main.main(self)
 
     def visualize_network_action(self):
         print("visualize network")
@@ -92,7 +79,7 @@ class MainWindow:
 #-------PRIVATE METHODS--------------------------
 
     def _all_iterations_action(self):
-        main.main(self)
+        main.all_iteration_main()
 
 
 
