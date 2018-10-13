@@ -40,8 +40,10 @@ class CountingVariables:
 
         self.x_iterable = None
         self.y_iterable = None
+        self.session = None
+        self.epoch_number = None
 
-    def first_part_initialize(self, training_data, test_data):
+    def initialize(self, training_data, test_data):
         tf.set_random_seed(666)
         if self.training_data != None:
             return
@@ -51,6 +53,7 @@ class CountingVariables:
         self.training_epochs = cfg.training_epochs
         self.batch_size = cfg.batch_size if cfg.learning_type == 'batch' else 1
         self.display_step = cfg.display_step
+        self.epoch_number = 0
 
         # wielkość wektora cech
         self.n_input = len(vars(self.training_data[0])) - 1
@@ -75,13 +78,16 @@ class CountingVariables:
     
         # inicjalizacja zmiennych
         self.init = tf.global_variables_initializer()
-
-    def second_part_initialize(self):
-        if self.x_iterable != None:
-            return
+        self.session = tf.Session();
+        self.session.run([self.init])
+        self.session.__enter__()
         self.x_iterable = [[item.x, item.y] for item in self.training_data]
         self.y_iterable = convert_classification_labels_vector_to_tensorflow_output(
             [item.cls for item in self.training_data])
+
+    def destroy(self):
+        self.session.__exit__()
+
 
 _counting_variables = CountingVariables()
 # zwraca generator do pobierania danych - nie obciąża pamięci przy tworzeniu listy
@@ -229,32 +235,26 @@ def learn(training_data, test_data):
 
 def learn_all_epochs(training_data, test_data):
     global _counting_variables
-    _counting_variables.first_part_initialize(training_data, test_data)
-    with tf.Session() as sess:
-        sess.run([_counting_variables.init])
-        _counting_variables.second_part_initialize()
+    _counting_variables.initialize(training_data, test_data)
 
-        for epoch in range(_counting_variables.training_epochs):
-            train_one_iteration(sess, epoch)
-        print("Optimization Finished!")
-        test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
+    for epoch in range(_counting_variables.training_epochs):
+        train_one_iteration(_counting_variables.session, epoch)
+    print("Optimization Finished!")
+    test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
 
 def learn_one_epoch(training_data, test_data):
     global _counting_variables
-    _counting_variables.first_part_initialize(training_data, test_data)
-    with tf.Session() as sess:
-        sess.run([_counting_variables.init])
-        _counting_variables.second_part_initialize()
-        train_one_iteration(sess, _counting_variables.display_step)
-        print("One epoch Optimization Finished!")
-        test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
+    _counting_variables.initialize(training_data, test_data)
+    train_one_iteration(_counting_variables.session, -1)
+    print(f"One epoch (number {_counting_variables.epoch_number}) Optimization Finished!")
+    test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
 
 
 
 def initialize_variables(training_data, test_data):
     global _counting_variables
     print("initializing variables")
-    _counting_variables.first_part_initialize(training_data, test_data)
+    _counting_variables.initialize(training_data, test_data)
     return _counting_variables
 
 
@@ -262,9 +262,9 @@ def train_one_iteration(sess, epoch):
     global _counting_variables
     batch_x_generator = batch(_counting_variables.x_iterable, _counting_variables.batch_size)
     batch_y_generator = batch(_counting_variables.y_iterable, _counting_variables.batch_size)
-    avg_cost = 0.
+    avg_cost = 0.0
     total_batch = int(math.ceil(len(_counting_variables.training_data) / _counting_variables.batch_size))
-            
+    _counting_variables.epoch_number += 1
     for _ in range(total_batch):
         batch_x, batch_y = next(batch_x_generator), next(batch_y_generator)
         batch_x = np.asarray(batch_x, np.float32)
@@ -276,6 +276,9 @@ def train_one_iteration(sess, epoch):
         # obliczenie średniej straty
         avg_cost += c / total_batch
 
-        if epoch % _counting_variables.display_step == 0:
-            print("Epoch:", '%04d' % (epoch + 1), "cost={:.9f}".format(avg_cost))
-            test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
+    if epoch > -1 and epoch % _counting_variables.display_step == 0:
+        print("Epoch:", '%04d' % (_counting_variables.epoch_number), "cost={:.9f}".format(avg_cost), "current loop epoch: ", '%04d' % (epoch + 1))
+        test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
+def destroy():
+    if _counting_variables.session != None:
+        _counting_variables.session.close()
