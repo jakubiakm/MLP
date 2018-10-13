@@ -42,14 +42,15 @@ class CountingVariables:
         self.y_iterable = None
 
     def first_part_initialize(self, training_data, test_data):
+        tf.set_random_seed(666)
         if self.training_data != None:
             return
         self.training_data = training_data
         self.test_data = test_data
         self.learning_rate = cfg.learning_rate
         self.training_epochs = cfg.training_epochs
-        self.batch_size = cfg.batch_size
-        self.display_step = 10
+        self.batch_size = cfg.batch_size if cfg.learning_type == 'batch' else 1
+        self.display_step = cfg.display_step
 
         # wielkość wektora cech
         self.n_input = len(vars(self.training_data[0])) - 1
@@ -65,7 +66,7 @@ class CountingVariables:
         self.model = construct_multilayer_perceptron_model(self.X, self.n_input, self.n_classes)
 
         # zdefiniowanie funkcji straty i optymalizatora
-        self.loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
+        self.loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
             logits=self.model, labels=self.Y))
     
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
@@ -99,11 +100,9 @@ def construct_multilayer_perceptron_model(input_tensor, n_input, n_classes):
     biases = {}
     
     # generowanie zmiennych na wagi i bias
+    previous_layer_neurons_count = n_input
     for neurons in layers_neurons:
-        if(ind == 0):
-            weights['w0'] = tf.Variable(tf.random_normal([n_input, neurons]))
-        else:
-            weights['w' + str(ind)] = tf.Variable(tf.random_normal([previous_layer_neurons_count, neurons]))
+        weights['w' + str(ind)] = tf.Variable(tf.random_normal([previous_layer_neurons_count, neurons]))
         biases['b' + str(ind)] = tf.Variable(tf.random_normal([neurons]))
         previous_layer_neurons_count = neurons 
         ind = ind + 1
@@ -111,14 +110,19 @@ def construct_multilayer_perceptron_model(input_tensor, n_input, n_classes):
     weights['out'] = tf.Variable(tf.random_normal([previous_layer_neurons_count, n_classes]))
     biases['out'] = tf.Variable(tf.random_normal([n_classes]))
 
+    previous_layer = input_tensor
     #tworzenie w pełni połączonych warstw neurnowych
     for ind in range(len(layers_neurons)):
-        if(ind == 0):
-            previous_layer = tf.add(tf.matmul(input_tensor, weights['w' + str(ind)]), biases['b' + str(ind)])
+        if(cfg.use_biases == False):
+            previous_layer = tf.matmul(previous_layer, weights['w' + str(ind)])
         else:
             previous_layer = tf.add(tf.matmul(previous_layer, weights['w' + str(ind)]), biases['b' + str(ind)])   
-    
-    return tf.matmul(previous_layer, weights['out']) + biases['out']
+        previous_layer = tf.nn.relu(previous_layer)
+
+    if(cfg.use_biases == False):
+        return tf.matmul(previous_layer, weights['out'])
+    else:
+        return tf.matmul(previous_layer, weights['out']) + biases['out']
 
 
 # przekształca wektor wyjściowy dla problemu klasyfikacji (pobrany z excela z klas)
@@ -145,7 +149,9 @@ def test(model, test_data, X):
 
 
 # uczy model i wyświetla wyniki skuteczności
-def learn(training_data, test_data):   
+def learn(training_data, test_data):
+    tf.set_random_seed(666)
+
     learning_rate = cfg.learning_rate
     training_epochs = cfg.training_epochs
     batch_size = cfg.batch_size if cfg.learning_type == 'batch' else 1
@@ -165,7 +171,7 @@ def learn(training_data, test_data):
     model = construct_multilayer_perceptron_model(X, n_input, n_classes)
 
     # zdefiniowanie funkcji straty i optymalizatora
-    loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
+    loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
         logits=model, labels=Y))
     
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
@@ -260,4 +266,3 @@ def train_one_iteration(sess, epoch):
         if epoch % _counting_variables.display_step == 0:
             print("Epoch:", '%04d' % (epoch + 1), "cost={:.9f}".format(avg_cost))
             test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
-
