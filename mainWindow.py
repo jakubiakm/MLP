@@ -6,6 +6,7 @@ from threading import Thread
 
 import mlp  as mlp
 import main as main
+import visualizer as visualizer
 
 class MainWindow:
     def __init__(self, master):
@@ -40,10 +41,15 @@ class MainWindow:
 
         self.label_visualization = Label(self.visualization_frame, text = "Wizualizacja")
         self.label_visualization.pack(side = TOP)
-        self.button_one_iteration = Button(self.visualization_frame, text = "Pokaż sieć", command=self.visualize_network_action )
-        self.button_one_iteration.pack(side = TOP)
-        self.button_all_iteration = Button(self.visualization_frame, text = "Pokaż punkty", command=self.visualize_points_action )
-        self.button_all_iteration.pack(side = TOP)
+        self.button_net_visualization = Button(self.visualization_frame, text = "Pokaż sieć", command=self.visualize_network_action )
+        self.button_net_visualization.pack(side = TOP)
+
+        self.button_prediction_visualization = Button(self.visualization_frame, text = "Pokaż punkty", command=self.visualize_points_action )
+        self.button_prediction_visualization.pack(side = TOP)
+
+        self.button_learning_results_visualization = Button(self.visualization_frame, text = "Pokaż historię uczenia", command=self.visualize_learning_results_action )
+        self.button_learning_results_visualization.pack(side = TOP)
+
 
 #-------ACTIONS-------------------------
     def one_iteration_action(self):
@@ -64,6 +70,10 @@ class MainWindow:
 
     def visualize_points_action(self):
         print("visualize points")
+
+    def visualize_learning_results_action(self):
+        print("visualize learning results")
+        visualizer.visualize_learning_rate(mlp._counting_variables.epoch_number, mlp._counting_variables.learning_results)
 
     def quit(self):
         #TODO thread stop

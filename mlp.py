@@ -42,6 +42,7 @@ class CountingVariables:
         self.y_iterable = None
         self.session = None
         self.epoch_number = None
+        self.learning_results = None
 
     def initialize(self, training_data, test_data):
         tf.set_random_seed(666)
@@ -50,6 +51,7 @@ class CountingVariables:
         self.training_data = training_data
         self.test_data = test_data
         self.learning_rate = cfg.learning_rate
+        self.learning_results = []
         self.training_epochs = cfg.training_epochs
         self.batch_size = cfg.batch_size if cfg.learning_type == 'batch' else 1
         self.display_step = cfg.display_step
@@ -141,7 +143,7 @@ def convert_classification_labels_vector_to_tensorflow_output(labels_vector):
 
 
 # testuje model i wyświetla wyniki na wyjściu
-def test(model, test_data, X):
+def test(model, test_data, X, printResult = True):
     length = len(test_data)
     test_features = [[item.x, item.y] for item in test_data]
     predictions_labels = tf.argmax(model, 1).eval(feed_dict={X: test_features})
@@ -151,7 +153,9 @@ def test(model, test_data, X):
         if predictions_labels[ind] == labels_vector[ind]:
             points = points + 1
     accuracy = points / length
-    print("Accuracy:", accuracy)
+    if printResult:
+        print("Accuracy:", accuracy)
+    return accuracy
 
 
 # uczy model i wyświetla wyniki skuteczności
@@ -265,7 +269,10 @@ def train_one_iteration(sess, epoch):
 
     if epoch > -1 and epoch % _counting_variables.display_step == 0:
         print("Epoch:", '%04d' % (_counting_variables.epoch_number), "cost={:.9f}".format(avg_cost), "current loop epoch: ", '%04d' % (epoch + 1))
-        test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
+        _counting_variables.learning_results.append(test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X, True))
+    else:
+        _counting_variables.learning_results.append(test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X, False))
+
 def destroy():
     if _counting_variables.session != None:
         _counting_variables.session.close()
