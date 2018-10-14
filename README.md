@@ -3,7 +3,7 @@
 - [x] Funkcję aktywacji
 - [x] Obecność biasu
 - [x] Online vs batch learning (możliwość wyboru)
-- [ ] Liczbę iteracji
+- [x] Liczbę iteracji
 - [x] Wartość współczynnika nauki
 - [x] Wartość współczynnika bezwładności
 - [ ] Rodzaj problemu

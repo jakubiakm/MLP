@@ -7,8 +7,10 @@ class CountingVariables:
     
     def __init__(self, **kwargs):
         self.learning_rate = None
-        self.training_epochs = None
+        self.training_iterations = None
         self.batch_size = None
+        self.total_batch = None
+        self.training_epochs = None
         self.display_step = None
 
         # wielkość wektora cech
@@ -34,6 +36,8 @@ class CountingVariables:
     # inicjalizacja zmiennych
         self.init = None
 
+        self.iteration = None
+
         self.training_data = None
 
         self.test_data = None
@@ -52,8 +56,10 @@ class CountingVariables:
         self.test_data = test_data
         self.learning_rate = cfg.learning_rate
         self.learning_results = []
-        self.training_epochs = cfg.training_epochs
+        self.training_iterations = cfg.training_iterations
         self.batch_size = cfg.batch_size if cfg.learning_type == 'batch' else 1
+        self.total_batch = int(math.ceil(len(training_data) / self.batch_size))
+        self.training_epochs = cfg.training_epochs
         self.display_step = cfg.display_step
         self.epoch_number = 0
 
@@ -81,6 +87,7 @@ class CountingVariables:
     
         # inicjalizacja zmiennych
         self.init = tf.global_variables_initializer()
+        self.iteration = 0
         self.session = tf.Session();
         self.session.run([self.init])
         self.session.__enter__()
@@ -177,8 +184,10 @@ def learn(training_data, test_data):
     tf.set_random_seed(666)
 
     learning_rate = cfg.learning_rate
-    training_epochs = cfg.training_epochs
+    training_iterations = cfg.training_iterations
     batch_size = cfg.batch_size if cfg.learning_type == 'batch' else 1
+    total_batch = int(math.ceil(len(training_data) / batch_size))
+    training_epochs = cfg.training_epochs if training_iterations == 0 else int(math.ceil(training_iterations/total_batch))
     display_step = cfg.display_step
 
     # wielkość wektora cech
@@ -205,6 +214,8 @@ def learn(training_data, test_data):
     # inicjalizacja zmiennych
     init = tf.global_variables_initializer()
  
+    iteration = 0
+    
     # uczenie
     with tf.Session() as sess:
         sess.run([init])
@@ -217,7 +228,6 @@ def learn(training_data, test_data):
             batch_x_generator = batch(x_iterable, batch_size)
             batch_y_generator = batch(y_iterable, batch_size)
             avg_cost = 0.
-            total_batch = int(math.ceil(len(training_data) / batch_size))
             
             for _ in range(total_batch):
                 batch_x, batch_y = next(batch_x_generator), next(batch_y_generator)
@@ -229,6 +239,17 @@ def learn(training_data, test_data):
                                                                 Y: batch_y})
                 # obliczenie średniej straty
                 avg_cost += c / total_batch
+                
+                if training_iterations != 0 and iteration % display_step == 0:
+                    print("Iteration:", '%05d' % (iteration + 1), "cost={:.9f}".format(avg_cost))
+                    test(model, test_data, X)
+            
+                iteration += 1
+                if(iteration == training_iterations):
+                    break
+
+            if(iteration == training_iterations):
+                break
 
             if epoch % display_step == 0:
                 print("Epoch:", '%04d' % (epoch + 1), "cost={:.9f}".format(avg_cost))
@@ -244,6 +265,8 @@ def learn_all_epochs(training_data, test_data):
 
     for epoch in range(_counting_variables.training_epochs):
         train_one_iteration(_counting_variables.session, epoch)
+        if(_counting_variables.iteration == _counting_variables.training_iterations):
+            break
     print("Optimization Finished!")
     test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
 
@@ -268,9 +291,8 @@ def train_one_iteration(sess, epoch):
     batch_x_generator = batch(_counting_variables.x_iterable, _counting_variables.batch_size)
     batch_y_generator = batch(_counting_variables.y_iterable, _counting_variables.batch_size)
     avg_cost = 0.0
-    total_batch = int(math.ceil(len(_counting_variables.training_data) / _counting_variables.batch_size))
     _counting_variables.epoch_number += 1
-    for _ in range(total_batch):
+    for _ in range(_counting_variables.total_batch):
         batch_x, batch_y = next(batch_x_generator), next(batch_y_generator)
         batch_x = np.asarray(batch_x, np.float32)
         batch_y = np.asarray(batch_y, np.float32)
@@ -279,8 +301,15 @@ def train_one_iteration(sess, epoch):
         _, c = sess.run([_counting_variables.train_op, _counting_variables.loss_op], feed_dict={_counting_variables.X: batch_x,
                                                                 _counting_variables.Y: batch_y})
         # obliczenie średniej straty
-        avg_cost += c / total_batch
+        avg_cost += c / _counting_variables.total_batch
 
+        if _counting_variables.training_iterations != 0 and _counting_variables.iteration % _counting_variables.display_step == 0:
+            print("Iteration:", '%05d' % (_counting_variables.iteration + 1), "cost={:.9f}".format(avg_cost))
+            test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
+
+        _counting_variables.iteration += 1
+        if(_counting_variables.iteration == _counting_variables.training_iterations):
+            break
     if epoch > -1 and epoch % _counting_variables.display_step == 0:
         print("Epoch:", '%04d' % (_counting_variables.epoch_number), "cost={:.9f}".format(avg_cost), "current loop epoch: ", '%04d' % (epoch + 1))
         _counting_variables.learning_results.append(test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X, True))
