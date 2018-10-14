@@ -18,13 +18,13 @@ def print_arguments():
     print(f'Use biases = {cfg.use_biases}')
     print(f'Learning type = {cfg.learning_type}')
     print(f'Batch size = {cfg.batch_size}')
-    print(f'Number of epochs = {cfg.training_epochs}')
+    print(f'Number of iterations = {cfg.training_epochs}')
     print(f'Problem type = {cfg.problem_type}')
     print(f'Learning file path = {cfg.training_path}')
     print(f'Training file path = {cfg.test_path}')
     print(f'Use gpu = {cfg.use_gpu}')
     print(f'Display step = {cfg.display_step}')
-
+    print(f'Momentum = {cfg.momentum}')
 
 def main(_):
     validate_arguments()

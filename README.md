@@ -3,9 +3,9 @@
 - [x] Funkcję aktywacji
 - [x] Obecność biasu
 - [x] Online vs batch learning (możliwość wyboru)
-- [x] Liczbę iteracji
+- [ ] Liczbę iteracji
 - [x] Wartość współczynnika nauki
-- [ ] Wartość współczynnika bezwładności
+- [x] Wartość współczynnika bezwładności
 - [ ] Rodzaj problemu
 - - [x] Klasyfikacja
 - - [ ] Regresja

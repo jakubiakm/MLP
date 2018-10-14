@@ -74,8 +74,9 @@ class CountingVariables:
         self.loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
             logits=self.model, labels=self.Y))
     
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
-    
+        self.optimizer = tf.train.MomentumOptimizer(learning_rate=self.learning_rate, momentum=cfg.momentum)# ,use_nesterov=True)
+        
+
         self.train_op = self.optimizer.minimize(self.loss_op)
     
         # inicjalizacja zmiennych
@@ -197,7 +198,7 @@ def learn(training_data, test_data):
     loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
         logits=model, labels=Y))
     
-    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+    optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=cfg.momentum)# ,use_nesterov=True)
     
     train_op = optimizer.minimize(loss_op)
     

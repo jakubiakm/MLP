@@ -21,5 +21,6 @@ flags.DEFINE_string('training_path', r'.\data\classification\data.three_gauss.tr
 flags.DEFINE_string('test_path', r'.\data\classification\data.three_gauss.test.10000.csv', 'Test file path')
 
 flags.DEFINE_float('learning_rate', 0.001, 'Learning rate')
+flags.DEFINE_float('momentum', 0.9, 'Momentum parameter for SGD')
 
 cfg = tf.app.flags.FLAGS
