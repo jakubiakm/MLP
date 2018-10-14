@@ -162,6 +162,11 @@ def convert_classification_labels_vector_to_tensorflow_output(labels_vector):
     labels_vector = tf.one_hot(labels_vector, number_of_classes).eval()
     return labels_vector        
 
+def count_predictions(model, test_data):
+    length = len(test_data)
+    test_features = [[item.x, item.y] for item in test_data]
+    predictions_labels = tf.argmax(model, 1).eval(feed_dict={_counting_variables.X: test_features})
+    return predictions_labels
 
 # testuje model i wyświetla wyniki na wyjściu
 def test(model, test_data, X, printResult = True):

@@ -6,7 +6,7 @@ flags = tf.app.flags
 #####################
 #command prompt flags
 #####################
-flags.DEFINE_integer('training_epochs', 500, 'Number of epochs')
+flags.DEFINE_integer('training_epochs', 100, 'Number of epochs')
 flags.DEFINE_integer('training_iterations', 0, 'Number of iterations')
 flags.DEFINE_integer('batch_size', 200, 'Batch size')
 flags.DEFINE_integer('display_step', 5, 'Display step')
@@ -23,5 +23,13 @@ flags.DEFINE_string('test_path', r'.\data\classification\data.three_gauss.test.1
 
 flags.DEFINE_float('learning_rate', 0.001, 'Learning rate')
 flags.DEFINE_float('momentum', 0.9, 'Momentum parameter for SGD')
+
+
+#######################
+# Visualization Flags #
+#######################
+flags.DEFINE_boolean('points_drawing_draw_points', True, 'Draw train and test points on plot')
+flags.DEFINE_float('points_drawing_sampling', 0.01, 'Point sampling')
+flags.DEFINE_float('points_drawing_pixel_size_multiplier', 800, 'pixel size is equal to points_drawing_sampling * points_drawing_pixel_size_multiplier')
 
 cfg = tf.app.flags.FLAGS

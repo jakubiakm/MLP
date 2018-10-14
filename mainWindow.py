@@ -70,6 +70,7 @@ class MainWindow:
 
     def visualize_points_action(self):
         print("visualize points")
+        visualizer.visualize_points(mlp._counting_variables.model, mlp.count_predictions)
 
     def visualize_learning_results_action(self):
         print("visualize learning results")
@@ -77,7 +78,9 @@ class MainWindow:
 
     def quit(self):
         #TODO thread stop
+        print('exit')
         main.destroy()
+        visualizer.destroy()
         self.master.quit()
 
     def greet(self):
