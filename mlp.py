@@ -139,6 +139,10 @@ def construct_multilayer_perceptron_model(input_tensor, n_input, n_classes):
     weights['out'] = tf.Variable(tf.random_normal([previous_layer_neurons_count, n_classes]))
     biases['out'] = tf.Variable(tf.random_normal([n_classes]))
 
+    _counting_variables.weights = weights
+    _counting_variables.biases = biases
+    _counting_variables.layers_neurons = layers_neurons
+
     previous_layer = input_tensor
     #tworzenie w pełni połączonych warstw neurnowych
     for ind in range(len(layers_neurons)):

@@ -3,10 +3,13 @@ from tkinter import LEFT, RIGHT, TOP, BOTTOM
 from tkinter import W
 
 from threading import Thread
+from config import cfg
 
 import mlp  as mlp
 import main as main
 import visualizer as visualizer
+import tensorflow as tf
+import tensorboard as tb
 
 class MainWindow:
     def __init__(self, master):
@@ -44,8 +47,11 @@ class MainWindow:
         self.button_net_visualization = Button(self.visualization_frame, text = "Pokaż sieć", command=self.visualize_network_action )
         self.button_net_visualization.pack(side = TOP)
 
-        self.button_prediction_visualization = Button(self.visualization_frame, text = "Pokaż punkty", command=self.visualize_points_action )
+        self.button_prediction_visualization = Button(self.visualization_frame, text = "Pokaż punkty i tło", command=self.visualize_points_action )
         self.button_prediction_visualization.pack(side = TOP)
+
+        self.button_prediction_no_points_visualization = Button(self.visualization_frame, text = "Pokaż tło bez punktów", command=self.visualize_points_only_bcg_action )
+        self.button_prediction_no_points_visualization.pack(side = TOP)
 
         self.button_learning_results_visualization = Button(self.visualization_frame, text = "Pokaż historię uczenia", command=self.visualize_learning_results_action )
         self.button_learning_results_visualization.pack(side = TOP)
@@ -67,10 +73,25 @@ class MainWindow:
 
     def visualize_network_action(self):
         print("visualize network")
+        for w in mlp._counting_variables.biases:
+            print(w)
+            print(mlp._counting_variables.session.run(mlp._counting_variables.biases[w]))
+
+        visualizer.visualize_graph(mlp._counting_variables)
+
+        #Graph export to visualize in tensorboard.
+        writer = tf.summary.FileWriter(cfg.save_file,  mlp._counting_variables.session.graph)
+        writer.close()
+        #py -m tensorboard.main --logdir=./output/save.model
+       
 
     def visualize_points_action(self):
-        print("visualize points")
-        visualizer.visualize_points(mlp._counting_variables.model, mlp.count_predictions)
+        print("visualize points and background")
+        visualizer.visualize_points(mlp._counting_variables.model, mlp.count_predictions, True)
+
+    def visualize_points_only_bcg_action(self):
+        print("visualize background only")
+        visualizer.visualize_points(mlp._counting_variables.model, mlp.count_predictions, False)
 
     def visualize_learning_results_action(self):
         print("visualize learning results")

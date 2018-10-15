@@ -1,7 +1,12 @@
 ﻿import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import tensorflow as tf
+import numpy as np
 from config import cfg
 import data as data
+import networkx as nx
+from mlp import CountingVariables
+import networkx as nx
 
 _colors = ["#3763D0", "#32679D", "#1EAB98", "#63738A", "#6E85A5", "#CC3237", "#DD4479", "#974599", "#6633D0", "#A77073", "#8C6D8D", "#11951C", "#319261", "#65AB00", "#AAAC07", "#5E8C89", "#8A8853", "#D4AF00", "#EA8B00", "#DD5415", "#B2885B"]
 
@@ -18,33 +23,128 @@ def visualize_learning_rate(epochs, learning_rate):
     plt.axis([0, epochs+1, 0, 1])
     plt.show()
 
+def change_multiplier(val, pos_mult):
+    odd = 80
+    even = 100
+    if (pos_mult[1] == 0):
+        pos_mult[1] = 1
+        return even * val
+    res = even
+    if (pos_mult[0] == even):
+        pos_mult[0] = odd
+    else:
+        pos_mult[0] = even
+    pos_mult[1] = 0
+    return (res * val)
+
+def visualize_graph(_counting_variables):
+    G = nx.Graph()
+    position = 1
+    pos_mult = [100, 0]
+    fixed_positions = {}
+    names_mapping = {}
+    weights = []
+    biases = []
+    for w in _counting_variables.weights:
+        weights.append(_counting_variables.session.run(_counting_variables.weights[w]))
+    for b in _counting_variables.biases:
+        biases.append(_counting_variables.session.run(_counting_variables.biases[b]))
+   # _counting_variables = CountingVariables()
+    for input in range(_counting_variables.n_input):
+        nodeName = "in" + str(input)
+        G.add_node(nodeName)
+        fixed_positions[nodeName] = (change_multiplier(position, pos_mult), change_multiplier((input+1),pos_mult))
+        names_mapping[nodeName] = "{0:.2f}".format(biases[0][input])
+    level = 0
+    position += 1
+    for neurons in _counting_variables.layers_neurons:
+        for neuron in range(neurons):
+            nodeName = "l" + str(level)+"n"+str(neuron)
+            G.add_node(nodeName)
+            fixed_positions[nodeName] = (change_multiplier(position, pos_mult), change_multiplier((neuron+1),pos_mult))
+            names_mapping[nodeName] = "{0:.2f}".format(biases[level][neuron])
+        level += 1
+        position += 1
 
 
-def visualize_points(model, count_predictions_func):
+    
+    for input in range(_counting_variables.n_input):
+        for neurons in _counting_variables.layers_neurons:
+            for neuron in range(neurons):
+                G.add_edge("in" + str(input), "l" + str(0)+"n"+str(neuron),weight="{0:.2f}".format(weights[0][input][neuron]))
+            break
+    level = 1
+    br = True
+    prev = 0
+    for neurons in _counting_variables.layers_neurons:
+        if br:
+            br = False
+            prev = neurons
+            continue
+        for neuron in range(neurons):
+            for prevNeuron in range(prev):
+                G.add_edge("l" + str(level-1)+"n"+str(prevNeuron), "l" + str(level)+"n"+str(neuron),weight="{0:.2f}".format(weights[level][prevNeuron][neuron]))
+        level += 1
+
+    print("Nodes of graph: ")
+    print(G.nodes())
+    print("Edges of graph: ")
+    print(G.edges())
+    #nx.draw(G, with_labels=True)
+    #pos=nx.get_node_attributes(G,'pos')
+    #labels = nx.get_edge_attributes(G,'weight')
+    #new_labels = dict(map(lambda x:((x[0],x[1]), str(x[2]['weight'] if x[2]['weight']<=3 else "") ), G.edges(data = True)))
+    #print(labels)
+    #nx.draw_networkx_edge_labels(G,pos,edge_labels=labels)
+    #nx.draw_networkx_edges(G,pos,width=4, edge_color='g', arrows=False)
+    fixed_nodes = fixed_positions.keys()
+    pos = nx.spring_layout(G,pos=fixed_positions, fixed = fixed_nodes)
+    #nx.draw_networkx(G,pos)
+    #pos = nx.spring_layout(G)
+
+    #Here we go, essentially, build a dictionary where the key is tuple
+    #denoting an edge between two nodes and the value of it is the label for
+    #that edge. While constructing the dictionary, do some simple processing
+    #as well. In this case, just print the labels that have a weight less
+    #than or equal to 3. Variations to the way new_labels is constructed
+    #produce different results.
+
+    #nx.relabel_nodes(G, names_mapping, copy=False)
+    new_labels = nx.get_edge_attributes(G,'weight')
+    nx.draw_networkx_edge_labels(G, pos=pos, edge_labels = new_labels)
+    nx.draw_networkx_edges(G,pos,width=4, edge_color='g', arrows=True)
+    #labels=nx.draw_networkx_labels(G,pos=pos)
+    #G1 = nx.relabel_nodes(G, names_mapping, copy=True)
+    
+    
+    nx.draw_networkx(G, pos, labels = names_mapping)
+
+    #Please note use of edge_labels below.
+    
+    
+
+    #plt.savefig("path_graph1.png")
+    plt.show()
+
+
+def visualize_points(model, count_predictions_func, show_points):
     #training_data = [{'x':1, 'y':1, 'cls':1}, {'x':2, 'y':1, 'cls':2} ] #data.get_data(cfg.training_path, cfg.problem_type)
     if (model == None):
         return
     training_data = _get_points_separated_by_class(data.get_data(cfg.training_path, cfg.problem_type))
     test_data = _get_points_separated_by_class(data.get_data(cfg.test_path, cfg.problem_type))
-    #train_predictions = count_predictions_func(model, training_data)
-    #test_predictions = count_predictions_func(model, test_data)
-    #print(test_data)
-
     fig = plt.figure()
     ax=plt.subplot()
-    _draw_background_points(ax, model, count_predictions_func)
-    if cfg.points_drawing_draw_points:
+    extremums = _draw_background_points(ax, model, count_predictions_func)
+    if show_points:
         for cls in training_data: 
             arr = training_data[cls]
-            ax.scatter([[item.x] for item in arr], [[item.y] for item in arr] , color=_colors[cls], marker='.', s = 1)
+            ax.scatter([[item.x] for item in arr], [[item.y] for item in arr] , color=_count_color(cls, 0, extremums['min'], extremums['max']), marker='.', s = 1)
             cls +=1
         for cls in test_data:
             arr = test_data[cls]
-            ax.scatter([[item.x] for item in arr], [[item.y] for item in arr] , color=_colors[cls], marker=',', s = 1)
+            ax.scatter([[item.x] for item in arr], [[item.y] for item in arr] , color=_count_color(cls, 0, extremums['min'], extremums['max']), marker=',', s = 1)
             cls +=1
-
-    #for i in range(len(training_data)):
-    #    ax.scatter(training_data[i]['x'],training_data[i]['y'], color=_colors[int(training_data[i]['cls'])])
     plt.show()
 
 
@@ -85,16 +185,50 @@ def _draw_background_points(ax, model, count_predictions_func):
             currentY += sampling
     test_points_predictions = count_predictions_func(model, test_points)
 
+    minVal = 99999.0
+    maxVal = -99999.0
+    if cfg.problem_type == "classification":
+        test_points_predictions = count_predictions_func(model, test_points)
+        for i in range(len(test_points)):
+            test_points[i].cls = test_points_predictions[i] + 1
+        separated_points = _get_points_separated_by_class(test_points)
+        point_size = sampling * 700
+        if point_size < 1:
+            point_size = 1
+        for cls in separated_points:
+            arr = separated_points[cls]
+            ax.scatter([[item.x] for item in arr], [[item.y] for item in arr] , color=_count_color(cls, 30, minVal, maxVal), marker=',', s = point_size)
+    else:
+        test_points_predictions = count_predictions_func(model, test_points)
+        for i in range(len(test_points)):
+            test_points[i].cls = test_points_predictions[i]
+            if test_points_predictions[i] < minVal:
+                minVal = test_points_predictions[i]
+            if test_points_predictions[i] > maxVal:
+                maxVal = test_points_predictions[i]
+        point_size = sampling * 700
+        if point_size < 1:
+            point_size = 1
+        colors = [_count_color(item.cls, 0, minVal, maxVal) for item in test_points]
+        x = [[item.x] for item in test_points]
+        y = [[item.y] for item in test_points]
+        for i in range(len(x)):
+            ax.scatter(x[i], y[i] , color=colors[i], marker=',', s = point_size)
+
+    return {'min': minVal, 'max':maxVal}
+
+def _count_color(cls, shift, minVal, maxVal):
+    if cfg.problem_type == "classification":
+        return _shift_color(_colors[cls], shift)
+    cls = ((cls - minVal)*1.0)/(maxVal - minVal)
+    return _shift_color("#000000", int(255.0*cls))
+
+#TODO delete this when regression is done
+def _count_sample_prediction(test_points):
+    result = []
     for i in range(len(test_points)):
-        test_points[i].cls = test_points_predictions[i] + 1
-    separated_points = _get_points_separated_by_class(test_points)
-    #print(separated_points)
-    point_size = sampling * 700
-    if point_size < 1:
-        point_size = 1
-    for cls in separated_points:
-        arr = separated_points[cls]
-        ax.scatter([[item.x] for item in arr], [[item.y] for item in arr] , color=_shift_color(_colors[cls], 30), marker=',', s = point_size)
+        result.append(test_points[i].x + test_points[i].y)
+    return result
 
 def _shift_color(color, shift):
     R = int(color[1:3], 16) + shift
