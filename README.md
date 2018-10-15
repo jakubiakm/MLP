@@ -6,9 +6,9 @@
 - [x] Liczbę iteracji
 - [x] Wartość współczynnika nauki
 - [x] Wartość współczynnika bezwładności
-- [ ] Rodzaj problemu
+- [x] Rodzaj problemu
 - - [x] Klasyfikacja
-- - [ ] Regresja
+- - [x] Regresja
 
 ### Wymagania dotyczące aplikacji i oddania projektu:
 Aplikacja przetwarza zbiory zgodnie z podanym opisem

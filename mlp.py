@@ -12,6 +12,7 @@ class CountingVariables:
         self.total_batch = None
         self.training_epochs = None
         self.display_step = None
+        self.is_classification_problem = None
 
         # wielkość wektora cech
         self.n_input = None
@@ -61,13 +62,14 @@ class CountingVariables:
         self.total_batch = int(math.ceil(len(training_data) / self.batch_size))
         self.training_epochs = cfg.training_epochs
         self.display_step = cfg.display_step
+        self.is_classification_problem = cfg.problem_type == 'classification'
         self.epoch_number = 0
 
         # wielkość wektora cech
         self.n_input = len(vars(self.training_data[0])) - 1
     
         # ilość możliwych klas do klasyfikacji
-        self.n_classes = len(set([item.cls for item in self.training_data])) if cfg.problem_type == 'classification' else 1
+        self.n_classes = len(set([item.cls for item in self.training_data])) if self.is_classification_problem else 1
 
         # wektory krańcowe
         self.X = tf.placeholder("float", [None, self.n_input])
@@ -77,9 +79,12 @@ class CountingVariables:
         self.model = construct_multilayer_perceptron_model(self.X, self.n_input, self.n_classes)
 
         # zdefiniowanie funkcji straty i optymalizatora
-        self.loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
-            logits=self.model, labels=self.Y))
-    
+        if self.is_classification_problem:
+            self.loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
+                logits=self.model, labels=self.Y))
+        else:
+            self.loss_op = tf.losses.mean_squared_error(predictions=self.model, labels=self.Y)
+        
         self.optimizer = tf.train.MomentumOptimizer(learning_rate=self.learning_rate, momentum=cfg.momentum)# ,use_nesterov=True)
         
 
@@ -91,9 +96,13 @@ class CountingVariables:
         self.session = tf.Session();
         self.session.run([self.init])
         self.session.__enter__()
-        self.x_iterable = [[item.x, item.y] for item in self.training_data]
-        self.y_iterable = convert_classification_labels_vector_to_tensorflow_output(
-            [item.cls for item in self.training_data])
+        if self.is_classification_problem:
+            self.x_iterable = [[item.x, item.y] for item in self.training_data]
+            self.y_iterable = convert_classification_labels_vector_to_tensorflow_output(
+                [item.cls for item in self.training_data])
+        else:
+            self.x_iterable = [[item.x] for item in self.training_data]
+            self.y_iterable = [[item.y] for item in self.training_data]
 
     def destroy(self):
         self.session.__exit__()
@@ -173,7 +182,7 @@ def count_predictions(model, test_data):
     return predictions_labels
 
 # testuje model i wyświetla wyniki na wyjściu
-def test(model, test_data, X, printResult = True):
+def test_classification(model, test_data, X, printResult = True):
     length = len(test_data)
     test_features = [[item.x, item.y] for item in test_data]
     predictions_labels = tf.argmax(model, 1).eval(feed_dict={X: test_features})
@@ -186,6 +195,15 @@ def test(model, test_data, X, printResult = True):
     if printResult:
         print("Accuracy:", accuracy)
     return accuracy
+    
+
+def test_regression(model, test_data, X, printResult = True):
+    test_features = [[item.x] for item in test_data]
+    labels_vector = [[float(item.y)] for item in test_data]
+    mean_squared_error = tf.losses.mean_squared_error(predictions=model, labels=labels_vector).eval(feed_dict={X: test_features})
+    if printResult:
+        print("Mean squared error:", mean_squared_error)
+    return mean_squared_error
 
 
 # uczy model i wyświetla wyniki skuteczności
@@ -198,12 +216,13 @@ def learn(training_data, test_data):
     total_batch = int(math.ceil(len(training_data) / batch_size))
     training_epochs = cfg.training_epochs if training_iterations == 0 else int(math.ceil(training_iterations/total_batch))
     display_step = cfg.display_step
+    is_classification_problem = cfg.problem_type == 'classification'
 
     # wielkość wektora cech
     n_input = len(vars(training_data[0])) - 1
     
     # ilość możliwych klas do klasyfikacji
-    n_classes = len(set([item.cls for item in training_data])) if cfg.problem_type == 'classification' else 1
+    n_classes = len(set([item.cls for item in training_data])) if is_classification_problem else 1
 
     # wektory krańcowe
     X = tf.placeholder("float", [None, n_input])
@@ -213,10 +232,13 @@ def learn(training_data, test_data):
     model = construct_multilayer_perceptron_model(X, n_input, n_classes)
 
     # zdefiniowanie funkcji straty i optymalizatora
-    loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
+    if is_classification_problem:
+        loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
         logits=model, labels=Y))
+    else:
+        loss_op = tf.losses.mean_squared_error(predictions=model, labels=Y)
     
-    optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=cfg.momentum)# ,use_nesterov=True)
+    optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=cfg.momentum)
     
     train_op = optimizer.minimize(loss_op)
     
@@ -229,9 +251,13 @@ def learn(training_data, test_data):
     with tf.Session() as sess:
         sess.run([init])
         
-        x_iterable = [[item.x, item.y] for item in training_data]
-        y_iterable = convert_classification_labels_vector_to_tensorflow_output(
-            [item.cls for item in training_data])
+        if is_classification_problem:
+            x_iterable = [[item.x, item.y] for item in training_data] 
+            y_iterable = convert_classification_labels_vector_to_tensorflow_output(
+            [item.cls for item in training_data]) 
+        else:
+            x_iterable = [[item.x] for item in training_data]
+            y_iterable = [[item.y] for item in training_data]
 
         for epoch in range(training_epochs):      
             batch_x_generator = batch(x_iterable, batch_size)
@@ -250,8 +276,11 @@ def learn(training_data, test_data):
                 avg_cost += c / total_batch
                 
                 if training_iterations != 0 and iteration % display_step == 0:
-                    print("Iteration:", '%05d' % (iteration + 1), "cost={:.9f}".format(avg_cost))
-                    test(model, test_data, X)
+                    print("Iteration:", '%05d' % (iteration + 1), "cost={:.9f}".format(avg_cost), end =' ')
+                    if(is_classification_problem):
+                        test_classification(model, test_data, X)
+                    else:
+                        test_regression(model, test_data, X)
             
                 iteration += 1
                 if(iteration == training_iterations):
@@ -261,12 +290,16 @@ def learn(training_data, test_data):
                 break
 
             if epoch % display_step == 0:
-                print("Epoch:", '%04d' % (epoch + 1), "cost={:.9f}".format(avg_cost))
-                test(model, test_data, X)
-
+                print("Epoch:", '%04d' % (epoch + 1), "cost={:.9f}".format(avg_cost), end=' ')
+                if(is_classification_problem):
+                    test_classification(model, test_data, X)
+                else:
+                    test_regression(model, test_data, X)
         print("Optimization Finished!")
-        test(model, test_data, X)
-
+        if(is_classification_problem):
+            test_classification(model, test_data, X)
+        else:
+            test_regression(model, test_data, X)
 
 def learn_all_epochs(training_data, test_data):
     global _counting_variables
@@ -277,15 +310,21 @@ def learn_all_epochs(training_data, test_data):
         if(_counting_variables.iteration == _counting_variables.training_iterations):
             break
     print("Optimization Finished!")
-    test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
+    if(_counting_variables.is_classification_problem):
+        test_classification(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
+    else:
+        test_regression(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
+
 
 def learn_one_epoch(training_data, test_data):
     global _counting_variables
     _counting_variables.initialize(training_data, test_data)
     train_one_iteration(_counting_variables.session, -1)
     print(f"One epoch (number {_counting_variables.epoch_number}) Optimization Finished!")
-    test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
-
+    if(_counting_variables.is_classification_problem):
+        test_classification(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
+    else:
+        test_regression(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
 
 
 def initialize_variables(training_data, test_data):
@@ -314,16 +353,25 @@ def train_one_iteration(sess, epoch):
 
         if _counting_variables.training_iterations != 0 and _counting_variables.iteration % _counting_variables.display_step == 0:
             print("Iteration:", '%05d' % (_counting_variables.iteration + 1), "cost={:.9f}".format(avg_cost))
-            test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
-
-        _counting_variables.iteration += 1
+            if(_counting_variables.is_classification_problem):
+                test_classification(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
+            else:
+                test_regression(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
+            _counting_variables.iteration += 1
         if(_counting_variables.iteration == _counting_variables.training_iterations):
             break
     if epoch > -1 and epoch % _counting_variables.display_step == 0:
         print("Epoch:", '%04d' % (_counting_variables.epoch_number), "cost={:.9f}".format(avg_cost), "current loop epoch: ", '%04d' % (epoch + 1))
-        _counting_variables.learning_results.append(test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X, True))
+        if(_counting_variables.is_classification_problem):
+            _counting_variables.learning_results.append(test_classification(_counting_variables.model, _counting_variables.test_data, _counting_variables.X, True))
+        else:
+            _counting_variables.learning_results.append(test_regression(_counting_variables.model, _counting_variables.test_data, _counting_variables.X, True))
     else:
-        _counting_variables.learning_results.append(test(_counting_variables.model, _counting_variables.test_data, _counting_variables.X, False))
+        if(_counting_variables.is_classification_problem):
+            _counting_variables.learning_results.append(test_classification(_counting_variables.model, _counting_variables.test_data, _counting_variables.X, False))
+        else:
+            _counting_variables.learning_results.append(test_regression(_counting_variables.model, _counting_variables.test_data, _counting_variables.X, False))
+
 
 def destroy():
     if _counting_variables.session != None:

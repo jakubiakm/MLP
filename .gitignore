@@ -103,3 +103,4 @@ ENV/
 # Others
 .idea
 .vscode
+output/save.model/*
