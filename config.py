@@ -26,7 +26,7 @@ flags.DEFINE_string('test_path', r'.\data\regression\data.cube.test.10000.csv', 
 flags.DEFINE_string('save_file', r'.\output\save.model', 'File model is saved to')
 
 flags.DEFINE_float('learning_rate', 0.001, 'Learning rate')
-flags.DEFINE_float('momentum', 0.9, 'Momentum parameter for SGD')
+flags.DEFINE_float('momentum', 0.1, 'Momentum parameter for SGD')
 
 
 #######################

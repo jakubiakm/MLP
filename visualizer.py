@@ -163,13 +163,12 @@ def _visualize_regression_problem(model, count_predictions_func, show_points):
     func_y = count_predictions_func(model, func_x)
     fig = plt.figure()
     ax=plt.subplot()
-    for elem in range(len(func_x)):
-        x = func_x[elem]
-        y = func_y[elem]
-        ax.scatter(x, y , color=_count_color(y, 0, minY, maxY), marker=',', s = 1)
+    ax.scatter(func_x, func_y , color="#0000FF", marker=',', s = 1, label = "predykcja")
     if show_points:
-        ax.scatter([[item.x] for item in training_data], [[item.cls] for item in training_data], color="#FF0000", marker='^', s=1)
-        ax.scatter([[item.x] for item in test_data], [[item.cls] for item in test_data], color="#00FF00", marker='.', s=1)
+        ax.scatter([[item.x] for item in training_data], [[item.cls] for item in training_data], color="#FF0000", marker='^', s=1, label="train")
+        ax.scatter([[item.x] for item in test_data], [[item.cls] for item in test_data], color="#00FF00", marker='.', s=1, label="test")
+    legend = ax.legend(loc='lower right', shadow=True, fontsize='x-small')
+    legend.get_frame().set_facecolor('#FFFFFF')
     plt.show()
 
 
@@ -253,13 +252,6 @@ def _count_color(cls, shift, minVal, maxVal):
         return _shift_color(_colors[cls], shift)
     cls = ((cls - minVal)*1.0)/(maxVal - minVal)
     return _shift_color("#000000", int(255.0*cls))
-
-#TODO delete this when regression is done
-def _count_sample_prediction(test_points):
-    result = []
-    for i in range(len(test_points)):
-        result.append(test_points[i].x + test_points[i].y)
-    return result
 
 def _shift_color(color, shift):
     R = int(color[1:3], 16) + shift
