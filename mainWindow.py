@@ -87,11 +87,11 @@ class MainWindow:
 
     def visualize_points_action(self):
         print("visualize points and background")
-        visualizer.visualize_points(mlp._counting_variables.model, mlp.count_predictions, True)
+        visualizer.visualize_points(mlp._counting_variables.model, mlp.count_predictions, True, mlp._counting_variables.is_classification_problem)
 
     def visualize_points_only_bcg_action(self):
         print("visualize background only")
-        visualizer.visualize_points(mlp._counting_variables.model, mlp.count_predictions, False)
+        visualizer.visualize_points(mlp._counting_variables.model, mlp.count_predictions, False, mlp._counting_variables.is_classification_problem)
 
     def visualize_learning_results_action(self):
         print("visualize learning results")

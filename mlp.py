@@ -51,9 +51,9 @@ class CountingVariables:
         self.cost_function = None
 
     def initialize(self, training_data, test_data):
-        tf.set_random_seed(666)
         if self.training_data != None:
             return
+        tf.set_random_seed(666)
         self.training_data = training_data
         self.test_data = test_data
         self.learning_rate = cfg.learning_rate
@@ -178,10 +178,14 @@ def convert_classification_labels_vector_to_tensorflow_output(labels_vector):
     return labels_vector        
 
 def count_predictions(model, test_data):
-    length = len(test_data)
-    test_features = [[item.x, item.y] for item in test_data]
-    predictions_labels = tf.argmax(model, 1).eval(feed_dict={_counting_variables.X: test_features})
-    return predictions_labels
+    if _counting_variables.is_classification_problem:
+        test_features = [[item.x, item.y] for item in test_data]
+        predictions_labels = tf.argmax(model, 1).eval(feed_dict={_counting_variables.X: test_features})
+        return predictions_labels
+    else:
+        test_features = [[item] for item in test_data]
+        predictions_labels = model.eval(feed_dict={_counting_variables.X: test_features})
+        return predictions_labels
 
 # testuje model i wyświetla wyniki na wyjściu
 def test_classification(model, test_data, X, printResult = True):
@@ -210,13 +214,12 @@ def test_regression(model, test_data, X, printResult = True):
 
 # uczy model i wyświetla wyniki skuteczności
 def learn(training_data, test_data):
-    tf.set_random_seed(666)
 
     learning_rate = cfg.learning_rate
     training_iterations = cfg.training_iterations
     batch_size = cfg.batch_size if cfg.learning_type == 'batch' else 1
     total_batch = int(math.ceil(len(training_data) / batch_size))
-    training_epochs = cfg.training_epochs if training_iterations == 0 else int(math.ceil(training_iterations/total_batch))
+    training_epochs = cfg.training_epochs if training_iterations > 0 else int(math.ceil(training_iterations/total_batch))
     display_step = cfg.display_step
     is_classification_problem = cfg.problem_type == 'classification'
 
@@ -354,7 +357,7 @@ def train_one_iteration(sess, epoch):
         # obliczenie średniej straty
         avg_cost += c / _counting_variables.total_batch
 
-        if _counting_variables.training_iterations != 0 and _counting_variables.iteration % _counting_variables.display_step == 0:
+        if _counting_variables.training_iterations > 0 and (_counting_variables.iteration % _counting_variables.display_step) == 0:
             print("Iteration:", '%05d' % (_counting_variables.iteration + 1), "cost={:.9f}".format(avg_cost))
             if(_counting_variables.is_classification_problem):
                 test_classification(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)

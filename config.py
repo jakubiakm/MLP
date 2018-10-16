@@ -7,7 +7,7 @@ flags = tf.app.flags
 #command prompt flags
 #####################
 flags.DEFINE_integer('training_epochs', 1000, 'Number of epochs')
-flags.DEFINE_integer('training_iterations', 0, 'Number of iterations')
+flags.DEFINE_integer('training_iterations', -1, 'Number of iterations')
 flags.DEFINE_integer('batch_size', 500, 'Batch size')
 flags.DEFINE_integer('display_step', 5, 'Display step')
 
@@ -20,8 +20,9 @@ flags.DEFINE_string('learning_type', 'batch', 'Learning type: [online, batch]')
 flags.DEFINE_string('problem_type', 'regression', 'Problem type: [classification, regression]')
 flags.DEFINE_string('training_path', r'.\data\regression\data.cube.train.10000.csv', 'Training file path')
 flags.DEFINE_string('test_path', r'.\data\regression\data.cube.test.10000.csv', 'Test file path')
-# flags.DEFINE_string('training_path', r'.\data\classification\data.three_gauss.train.10000.csv', 'Training file path')
-# flags.DEFINE_string('test_path', r'.\data\classification\data.three_gauss.train.10000.csv', 'Test file path')
+#flags.DEFINE_string('problem_type', 'classification', 'Problem type: [classification, regression]')
+#flags.DEFINE_string('training_path', r'.\data\classification\data.three_gauss.train.10000.csv', 'Training file path')
+#flags.DEFINE_string('test_path', r'.\data\classification\data.three_gauss.train.10000.csv', 'Test file path')
 flags.DEFINE_string('save_file', r'.\output\save.model', 'File model is saved to')
 
 flags.DEFINE_float('learning_rate', 0.001, 'Learning rate')

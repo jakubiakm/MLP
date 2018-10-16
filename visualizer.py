@@ -7,6 +7,7 @@ import data as data
 import networkx as nx
 from mlp import CountingVariables
 import networkx as nx
+from operator import attrgetter
 
 _colors = ["#3763D0", "#32679D", "#1EAB98", "#63738A", "#6E85A5", "#CC3237", "#DD4479", "#974599", "#6633D0", "#A77073", "#8C6D8D", "#11951C", "#319261", "#65AB00", "#AAAC07", "#5E8C89", "#8A8853", "#D4AF00", "#EA8B00", "#DD5415", "#B2885B"]
 
@@ -90,10 +91,11 @@ def visualize_graph(_counting_variables):
                 G.add_edge("l" + str(level-1)+"n"+str(prevNeuron), "l" + str(level)+"n"+str(neuron),weight="{0:.2f}".format(weights[level][prevNeuron][neuron]))
         level += 1
 
-    print("Nodes of graph: ")
-    print(G.nodes())
-    print("Edges of graph: ")
-    print(G.edges())
+    #print("Nodes of graph: ")
+    #print(G.nodes())
+    #print("Edges of graph: ")
+    #print(G.edges())
+    fig = plt.figure()
     fixed_nodes = fixed_positions.keys()
     pos = nx.spring_layout(G,pos=fixed_positions, fixed = fixed_nodes)
     new_labels = nx.get_edge_attributes(G,'weight')
@@ -103,13 +105,19 @@ def visualize_graph(_counting_variables):
     nx.draw_networkx(G, pos, labels = names_mapping, font_size=6, width=edge_size)
     #plt.savefig("path_graph1.png")
     plt.show()
-    plt.figure(100)
 
 
-def visualize_points(model, count_predictions_func, show_points):
+def visualize_points(model, count_predictions_func, show_points, is_classification):
     #training_data = [{'x':1, 'y':1, 'cls':1}, {'x':2, 'y':1, 'cls':2} ] #data.get_data(cfg.training_path, cfg.problem_type)
     if (model == None):
         return
+    if is_classification:
+         _visualize_classification_problem(model, count_predictions_func, show_points)
+    else:
+        _visualize_regression_problem(model, count_predictions_func, show_points)
+
+
+def _visualize_classification_problem(model, count_predictions_func, show_points):
     training_data = _get_points_separated_by_class(data.get_data(cfg.training_path, cfg.problem_type))
     test_data = _get_points_separated_by_class(data.get_data(cfg.test_path, cfg.problem_type))
     fig = plt.figure()
@@ -126,6 +134,49 @@ def visualize_points(model, count_predictions_func, show_points):
             cls +=1
     plt.show()
 
+def _visualize_regression_problem(model, count_predictions_func, show_points):
+    training_data = data.get_data(cfg.training_path, cfg.problem_type)
+    test_data = data.get_data(cfg.test_path, cfg.problem_type)
+    minX = minY = 999999.0
+    maxX = maxY = -999999.0
+    for i in range(len(training_data)):
+        point = training_data[i]
+        if float(point.x) > maxX:
+            maxX = float(point.x)
+        if float(point.x) < minX:
+            minX = float(point.x)
+        if float(point.cls) > maxY:
+            maxY = float(point.cls)
+        if float(point.cls) < minY:
+            minY = float(point.cls)
+    for i in range(len(test_data)):
+        point = test_data[i]
+        if float(point.x) > maxX:
+            maxX = float(point.x)
+        if float(point.x) < minX:
+            minX = float(point.x)
+        if float(point.cls) > maxY:
+            maxY = float(point.cls)
+        if float(point.cls) < minY:
+            minY = float(point.cls)
+    func_x = [x for x in frange(minX,maxX,(maxX-minX)/1000)]
+    func_y = count_predictions_func(model, func_x)
+    fig = plt.figure()
+    ax=plt.subplot()
+    for elem in range(len(func_x)):
+        x = func_x[elem]
+        y = func_y[elem]
+        ax.scatter(x, y , color=_count_color(y, 0, minY, maxY), marker=',', s = 1)
+    if show_points:
+        ax.scatter([[item.x] for item in training_data], [[item.cls] for item in training_data], color="#FF0000", marker='^', s=1)
+        ax.scatter([[item.x] for item in test_data], [[item.cls] for item in test_data], color="#00FF00", marker='.', s=1)
+    plt.show()
+
+
+def frange(x, y, jump):
+  while x < y:
+    yield x
+    x += jump
 
 def _draw_background_points(ax, model, count_predictions_func):
     minX = minY = 999999.0
@@ -170,6 +221,7 @@ def _draw_background_points(ax, model, count_predictions_func):
         test_points_predictions = count_predictions_func(model, test_points)
         for i in range(len(test_points)):
             test_points[i].cls = test_points_predictions[i] + 1
+        #print([[item.x, item.y, item.cls] for item in test_points])
         separated_points = _get_points_separated_by_class(test_points)
         point_size = sampling * 700
         if point_size < 1:
