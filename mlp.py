@@ -102,7 +102,7 @@ class CountingVariables:
                 [item.cls for item in self.training_data])
         else:
             self.x_iterable = [[item.x] for item in self.training_data]
-            self.y_iterable = [[item.y] for item in self.training_data]
+            self.y_iterable = [[item.cls] for item in self.training_data]
 
     def destroy(self):
         self.session.__exit__()
@@ -199,7 +199,7 @@ def test_classification(model, test_data, X, printResult = True):
 
 def test_regression(model, test_data, X, printResult = True):
     test_features = [[item.x] for item in test_data]
-    labels_vector = [[float(item.y)] for item in test_data]
+    labels_vector = [[float(item.cls)] for item in test_data]
     mean_squared_error = tf.losses.mean_squared_error(predictions=model, labels=labels_vector).eval(feed_dict={X: test_features})
     if printResult:
         print("Mean squared error:", mean_squared_error)
@@ -257,7 +257,7 @@ def learn(training_data, test_data):
             [item.cls for item in training_data]) 
         else:
             x_iterable = [[item.x] for item in training_data]
-            y_iterable = [[item.y] for item in training_data]
+            y_iterable = [[item.cls] for item in training_data]
 
         for epoch in range(training_epochs):      
             batch_x_generator = batch(x_iterable, batch_size)

@@ -1,20 +1,20 @@
 from csv import reader
 
 class RegressionData(object):
-    def __init__(self, x, y):
+    def __init__(self, x, cls):
         self._x = x
-        self._y = y
+        self._cls =cls
 
     @property
     def x(self):
         return self._x
 
     @property
-    def y(self):
-        return self._y
+    def cls(self):
+        return self._cls
 
     def __repr__(self):
-        return 'x: {0}, y: {1}'.format(self.x, self.y)
+        return 'x: {0}, cls: {1}'.format(self.x, self.cls)
 
 
 class ClassificationData(object):
