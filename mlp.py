@@ -307,6 +307,7 @@ def learn_all_epochs(training_data, test_data):
 
     for epoch in range(_counting_variables.training_epochs):
         train_one_iteration(_counting_variables.session, epoch)
+        _counting_variables.iteration += 1
         if(_counting_variables.iteration == _counting_variables.training_iterations):
             break
     print("Optimization Finished!")
