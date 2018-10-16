@@ -16,11 +16,15 @@ class _Point:
         self.y = y
         self.cls = -1
 
-def visualize_learning_rate(epochs, learning_rate):
+def visualize_learning_rate(learning_rate, cost_function):
     if learning_rate == None:
         return
-    plt.plot(list(range(1, epochs+1)), learning_rate)
-    plt.axis([0, epochs+1, 0, 1])
+    epochs = len(learning_rate)
+    fig, ax = plt.subplots()
+    ax.plot(list(range(1, epochs+1)), learning_rate, label="uczenie")
+    ax.plot(list(range(1, len(cost_function)+1)), cost_function, label="koszt")
+    legend = ax.legend(loc='lower right', shadow=True, fontsize='x-small')
+    legend.get_frame().set_facecolor('#FFFFFF')
     plt.show()
 
 def change_multiplier(val, pos_mult):
@@ -90,41 +94,16 @@ def visualize_graph(_counting_variables):
     print(G.nodes())
     print("Edges of graph: ")
     print(G.edges())
-    #nx.draw(G, with_labels=True)
-    #pos=nx.get_node_attributes(G,'pos')
-    #labels = nx.get_edge_attributes(G,'weight')
-    #new_labels = dict(map(lambda x:((x[0],x[1]), str(x[2]['weight'] if x[2]['weight']<=3 else "") ), G.edges(data = True)))
-    #print(labels)
-    #nx.draw_networkx_edge_labels(G,pos,edge_labels=labels)
-    #nx.draw_networkx_edges(G,pos,width=4, edge_color='g', arrows=False)
     fixed_nodes = fixed_positions.keys()
     pos = nx.spring_layout(G,pos=fixed_positions, fixed = fixed_nodes)
-    #nx.draw_networkx(G,pos)
-    #pos = nx.spring_layout(G)
-
-    #Here we go, essentially, build a dictionary where the key is tuple
-    #denoting an edge between two nodes and the value of it is the label for
-    #that edge. While constructing the dictionary, do some simple processing
-    #as well. In this case, just print the labels that have a weight less
-    #than or equal to 3. Variations to the way new_labels is constructed
-    #produce different results.
-
-    #nx.relabel_nodes(G, names_mapping, copy=False)
     new_labels = nx.get_edge_attributes(G,'weight')
     nx.draw_networkx_edge_labels(G, pos=pos, edge_labels = new_labels)
     nx.draw_networkx_edges(G,pos,width=4, edge_color='g', arrows=True)
-    #labels=nx.draw_networkx_labels(G,pos=pos)
-    #G1 = nx.relabel_nodes(G, names_mapping, copy=True)
-    
-    
-    nx.draw_networkx(G, pos, labels = names_mapping)
-
-    #Please note use of edge_labels below.
-    
-    
-
+    edge_size = [G[u][v]['weight'] for u,v in G.edges()] #the higher |weight| the wider is edge
+    nx.draw_networkx(G, pos, labels = names_mapping, font_size=6, width=edge_size)
     #plt.savefig("path_graph1.png")
     plt.show()
+    plt.figure(100)
 
 
 def visualize_points(model, count_predictions_func, show_points):

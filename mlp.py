@@ -48,6 +48,7 @@ class CountingVariables:
         self.session = None
         self.epoch_number = None
         self.learning_results = None
+        self.cost_function = None
 
     def initialize(self, training_data, test_data):
         tf.set_random_seed(666)
@@ -57,6 +58,7 @@ class CountingVariables:
         self.test_data = test_data
         self.learning_rate = cfg.learning_rate
         self.learning_results = []
+        self.cost_function = []
         self.training_iterations = cfg.training_iterations
         self.batch_size = cfg.batch_size if cfg.learning_type == 'batch' else 1
         self.total_batch = int(math.ceil(len(training_data) / self.batch_size))
@@ -372,6 +374,9 @@ def train_one_iteration(sess, epoch):
             _counting_variables.learning_results.append(test_classification(_counting_variables.model, _counting_variables.test_data, _counting_variables.X, False))
         else:
             _counting_variables.learning_results.append(test_regression(_counting_variables.model, _counting_variables.test_data, _counting_variables.X, False))
+    #print(_counting_variables.learning_results)
+    _counting_variables.cost_function.append(avg_cost)
+    
 
 
 def destroy():

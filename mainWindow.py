@@ -95,7 +95,7 @@ class MainWindow:
 
     def visualize_learning_results_action(self):
         print("visualize learning results")
-        visualizer.visualize_learning_rate(mlp._counting_variables.epoch_number, mlp._counting_variables.learning_results)
+        visualizer.visualize_learning_rate(mlp._counting_variables.learning_results, mlp._counting_variables.cost_function)
 
     def quit(self):
         #TODO thread stop
