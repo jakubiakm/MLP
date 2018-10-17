@@ -7,7 +7,6 @@ class CountingVariables:
     
     def __init__(self, **kwargs):
         self.learning_rate = None
-        self.training_iterations = None
         self.batch_size = None
         self.total_batch = None
         self.training_epochs = None
@@ -59,7 +58,6 @@ class CountingVariables:
         self.learning_rate = cfg.learning_rate
         self.learning_results = []
         self.cost_function = []
-        self.training_iterations = cfg.training_iterations
         self.batch_size = cfg.batch_size if cfg.learning_type == 'batch' else 1
         self.total_batch = int(math.ceil(len(training_data) / self.batch_size))
         self.training_epochs = cfg.training_epochs
@@ -216,10 +214,9 @@ def test_regression(model, test_data, X, printResult = True):
 def learn(training_data, test_data):
 
     learning_rate = cfg.learning_rate
-    training_iterations = cfg.training_iterations
     batch_size = cfg.batch_size if cfg.learning_type == 'batch' else 1
     total_batch = int(math.ceil(len(training_data) / batch_size))
-    training_epochs = cfg.training_epochs if training_iterations > 0 else int(math.ceil(training_iterations/total_batch))
+    training_epochs = cfg.training_epochs
     display_step = cfg.display_step
     is_classification_problem = cfg.problem_type == 'classification'
 
@@ -280,20 +277,6 @@ def learn(training_data, test_data):
                 # obliczenie średniej straty
                 avg_cost += c / total_batch
                 
-                if training_iterations != 0 and iteration % display_step == 0:
-                    print("Iteration:", '%05d' % (iteration + 1), "cost={:.9f}".format(avg_cost), end =' ')
-                    if(is_classification_problem):
-                        test_classification(model, test_data, X)
-                    else:
-                        test_regression(model, test_data, X)
-            
-                iteration += 1
-                if(iteration == training_iterations):
-                    break
-
-            if(iteration == training_iterations):
-                break
-
             if epoch % display_step == 0:
                 print("Epoch:", '%04d' % (epoch + 1), "cost={:.9f}".format(avg_cost), end=' ')
                 if(is_classification_problem):
@@ -313,8 +296,6 @@ def learn_all_epochs(training_data, test_data):
     for epoch in range(_counting_variables.training_epochs):
         train_one_iteration(_counting_variables.session, epoch)
         _counting_variables.iteration += 1
-        if(_counting_variables.training_iterations > 0 and _counting_variables.iteration == _counting_variables.training_iterations):
-            break
     print("Optimization Finished!")
     if(_counting_variables.is_classification_problem):
         test_classification(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
@@ -357,15 +338,7 @@ def train_one_iteration(sess, epoch):
         # obliczenie średniej straty
         avg_cost += c / _counting_variables.total_batch
 
-        if _counting_variables.training_iterations > 0 and (_counting_variables.iteration % _counting_variables.display_step) == 0:
-            print("Iteration:", '%05d' % (_counting_variables.iteration + 1), "cost={:.9f}".format(avg_cost))
-            if(_counting_variables.is_classification_problem):
-                test_classification(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
-            else:
-                test_regression(_counting_variables.model, _counting_variables.test_data, _counting_variables.X)
-            _counting_variables.iteration += 1
-        if(_counting_variables.iteration == _counting_variables.training_iterations):
-            break
+    
     if epoch > -1 and epoch % _counting_variables.display_step == 0:
         print("Epoch:", '%04d' % (_counting_variables.epoch_number), "cost={:.9f}".format(avg_cost), "current loop epoch: ", '%04d' % (epoch + 1))
         if(_counting_variables.is_classification_problem):
