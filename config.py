@@ -7,7 +7,6 @@ flags = tf.app.flags
 #command prompt flags
 #####################
 flags.DEFINE_integer('training_epochs', 1000, 'Number of epochs')
-flags.DEFINE_integer('training_iterations', -1, 'Number of iterations')
 flags.DEFINE_integer('batch_size', 500, 'Batch size')
 flags.DEFINE_integer('display_step', 5, 'Display step')
 
