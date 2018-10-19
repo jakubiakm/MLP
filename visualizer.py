@@ -6,7 +6,6 @@ from config import cfg
 import data as data
 import networkx as nx
 from mlp import CountingVariables
-import networkx as nx
 from operator import attrgetter
 
 _colors = ["#3763D0", "#32679D", "#1EAB98", "#63738A", "#6E85A5", "#CC3237", "#DD4479", "#974599", "#6633D0", "#A77073", "#8C6D8D", "#11951C", "#319261", "#65AB00", "#AAAC07", "#5E8C89", "#8A8853", "#D4AF00", "#EA8B00", "#DD5415", "#B2885B"]
@@ -71,6 +70,12 @@ def visualize_graph(_counting_variables):
         level += 1
         position += 1
 
+    for neuron in range(len(biases[len(biases)-1])):
+        nodeName = "l" + str(level)+"n"+str(neuron)
+        G.add_node(nodeName)
+        fixed_positions[nodeName] = (change_multiplier(position, pos_mult), change_multiplier((neuron+1),pos_mult))
+        names_mapping[nodeName] = "{0:.2f}".format(biases[level][neuron])
+
 
     
     for input in range(_counting_variables.n_input):
@@ -89,7 +94,11 @@ def visualize_graph(_counting_variables):
         for neuron in range(neurons):
             for prevNeuron in range(prev):
                 G.add_edge("l" + str(level-1)+"n"+str(prevNeuron), "l" + str(level)+"n"+str(neuron),weight="{0:.2f}".format(weights[level][prevNeuron][neuron]))
+        prev = neurons
         level += 1
+    for prevNeuron in range(prev):
+        for neuron in range(len(biases[len(biases)-1])):
+            G.add_edge("l" + str(level-1)+"n"+str(prevNeuron), "l" + str(level)+"n"+str(neuron),weight="{0:.2f}".format(weights[level][prevNeuron][neuron]))
 
     #print("Nodes of graph: ")
     #print(G.nodes())
@@ -99,7 +108,8 @@ def visualize_graph(_counting_variables):
     fixed_nodes = fixed_positions.keys()
     pos = nx.spring_layout(G,pos=fixed_positions, fixed = fixed_nodes)
     new_labels = nx.get_edge_attributes(G,'weight')
-    nx.draw_networkx_edge_labels(G, pos=pos, edge_labels = new_labels)
+    if cfg.graph_visualisation_show_numertic_weights:
+        nx.draw_networkx_edge_labels(G, pos=pos, edge_labels = new_labels)
     nx.draw_networkx_edges(G,pos,width=4, edge_color='g', arrows=True)
     edge_size = [G[u][v]['weight'] for u,v in G.edges()] #the higher |weight| the wider is edge
     nx.draw_networkx(G, pos, labels = names_mapping, font_size=6, width=edge_size)

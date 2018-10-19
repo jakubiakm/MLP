@@ -73,15 +73,15 @@ class MainWindow:
 
     def visualize_network_action(self):
         print("visualize network")
-        for w in mlp._counting_variables.biases:
-            print(w)
-            print(mlp._counting_variables.session.run(mlp._counting_variables.biases[w]))
+        #for w in mlp._counting_variables.weights:
+        #    print(w)
+        #    print(mlp._counting_variables.session.run(mlp._counting_variables.weights[w]))
 
         visualizer.visualize_graph(mlp._counting_variables)
 
         #Graph export to visualize in tensorboard.
-        writer = tf.summary.FileWriter(cfg.save_file,  mlp._counting_variables.session.graph)
-        writer.close()
+        #writer = tf.summary.FileWriter(cfg.save_file,  mlp._counting_variables.session.graph)
+        #writer.close()
         #py -m tensorboard.main --logdir=./output/save.model
        
 

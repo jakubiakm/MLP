@@ -14,7 +14,7 @@ flags.DEFINE_integer('display_step', 5, 'Display step')
 flags.DEFINE_boolean('use_biases', True, 'Use biases')
 flags.DEFINE_boolean('use_gpu', True, 'Use gpu')
 
-flags.DEFINE_string('neurons_in_layers', '[10, 10, 10]', 'Number of neurons in layers (array input like ''[1, 2, 3]''')
+flags.DEFINE_string('neurons_in_layers', '[3, 5, 7, 9]', 'Number of neurons in layers (array input like ''[1, 2, 3]''')
 flags.DEFINE_string('activation_function', 'relu', 'Activation function: [relu, relu6, crelu, elu, selu, softplus, softsign, dropout, sigmoid, tanh]')
 flags.DEFINE_string('learning_type', 'batch', 'Learning type: [online, batch]')
 flags.DEFINE_string('problem_type', 'regression', 'Problem type: [classification, regression]')
@@ -34,5 +34,6 @@ flags.DEFINE_float('momentum', 0.1, 'Momentum parameter for SGD')
 #######################
 flags.DEFINE_float('points_drawing_sampling', 0.01, 'Point sampling')
 flags.DEFINE_float('points_drawing_pixel_size_multiplier', 800, 'pixel size is equal to points_drawing_sampling * points_drawing_pixel_size_multiplier')
+flags.DEFINE_boolean('graph_visualisation_show_numertic_weights', False, 'show edges weights on graph. Most of weights are hiding each other')
 
 cfg = tf.app.flags.FLAGS
