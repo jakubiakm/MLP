@@ -1,4 +1,4 @@
-from tkinter import Tk, Label, Button, StringVar, Frame
+from tkinter import Tk, Label, Button, StringVar, Frame, Text
 from tkinter import LEFT, RIGHT, TOP, BOTTOM
 from tkinter import W
 
@@ -19,6 +19,8 @@ class MainWindow:
         self.create_iteration_panel(master)
 
         self.create_visualization_panel(master)
+
+        self.create_property_setter_panel(master)
 
         self.close_button = Button(master, text="Close", command=self.quit)
         self.close_button.pack(side = BOTTOM)
@@ -55,6 +57,27 @@ class MainWindow:
 
         self.button_learning_results_visualization = Button(self.visualization_frame, text = "Pokaż historię uczenia", command=self.visualize_learning_results_action )
         self.button_learning_results_visualization.pack(side = TOP)
+
+    def create_property_setter_panel(self, master):
+        self.property_setter_panel = Frame(master)
+        self.property_setter_panel.pack(side = TOP)
+
+        self.label_property_setter = Label(self.property_setter_panel, text = "Ustaw właściwość")
+        self.label_property_setter.pack(side = TOP)
+
+        self.label_set_propert = Label(self.property_setter_panel, text = "Nazwa")
+        self.label_set_propert.pack(side = TOP)
+        self.textbox_property_name = Text(self.property_setter_panel, height=1, width=20)
+        self.textbox_property_name.pack(side = TOP)
+
+        self.label_set_property_value = Label(self.property_setter_panel, text = "Wartość")
+        self.label_set_property_value.pack(side = TOP)
+        self.textbox_property_value = Text(self.property_setter_panel, height=1, width=20)
+        self.textbox_property_value.pack(side = TOP)
+        self.button_set_property = Button(self.property_setter_panel, text="Ustaw", command=self.set_property)
+        self.button_set_property.pack(side = TOP)
+
+
 
 
 #-------ACTIONS-------------------------
@@ -96,6 +119,24 @@ class MainWindow:
     def visualize_learning_results_action(self):
         print("visualize learning results")
         visualizer.visualize_learning_rate(mlp._counting_variables.learning_results, mlp._counting_variables.cost_function)
+        
+    def set_property(self):
+        print("set property")
+        property_name = self.textbox_property_name.get("1.0",'end-1c')
+        property_value = self.textbox_property_value.get("1.0",'end-1c')
+        print(property_name)
+        print(property_value)
+
+        try:
+            setattr(mlp._counting_variables, property_name, int(property_value))
+            setattr(cfg, property_name, int(property_value))
+        except Exception:
+            try:
+                setattr(mlp._counting_variables, property_name, float(property_value))
+                setattr(cfg, property_name, float(property_value))
+            except Exception:
+                setattr(mlp._counting_variables, property_name, property_value)
+                setattr(cfg, property_name, property_value)
 
     def quit(self):
         #TODO thread stop
@@ -111,6 +152,7 @@ class MainWindow:
         self.label_index += 1
         self.label_index %= len(self.LABEL_TEXT) # wrap around
         self.label_text.set(self.LABEL_TEXT[self.label_index])
+
 
 #-------PRIVATE METHODS--------------------------
 

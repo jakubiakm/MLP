@@ -84,6 +84,8 @@ class CountingVariables:
                 logits=self.model, labels=self.Y))
         else:
             self.loss_op = tf.losses.mean_squared_error(predictions=self.model, labels=self.Y)
+
+        self.momentum = cfg.momentum
         
         self.optimizer = tf.train.MomentumOptimizer(learning_rate=self.learning_rate, momentum=cfg.momentum)# ,use_nesterov=True)
         
